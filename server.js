@@ -1,0 +1,20 @@
+require('dotenv').config();
+const {connectToDb} = require('./utils/mongoose');
+const express = require('express');
+
+/** Connect to the database **/
+connectToDb();
+
+/** Express app **/
+const app = express();
+
+/** Server status endpoint **/
+app.use('/status', function (req, res) {
+    res.status(200).send("200 OK: Server is up and running!");
+});
+
+/** Start server **/
+const port = process.env.MAIN_SERVER_PORT ? process.env.MAIN_SERVER_PORT : 4001;
+const server = app.listen(port, function(){
+    console.info('Server is successfully launched and can be reached on port:' + port);
+});
