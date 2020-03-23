@@ -12,5 +12,8 @@
     "googleapis": "^48.0.0",
     "mongoose": "^5.9.5",
     "redis": "^3.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
   }
 }
