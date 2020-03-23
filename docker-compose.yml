@@ -1,0 +1,46 @@
+---
+version: "3.7"
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis-context
+    expose:
+      - 6379
+    ports:
+      - 6379:6379
+  mongo:
+    build: ./mongo
+    container_name: mongo-context
+    expose:
+      - 27017
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: database
+    volumes:
+      - ./mongo/data/db:/data/db
+  api:
+    build: ./
+    container_name: context
+    expose:
+      - 27017
+    ports:
+      - 4001:4001
+      - 49541:49541 #For debugging
+    environment:
+      NODE_ENV: development
+      WAIT_HOSTS: mongo:27017
+      WAIT_HOSTS_TIMEOUT: 60
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongo-context
+    entrypoint:
+      - "/bin/sh"
+      - -ecx
+      - |
+        /wait && yarn run dev
