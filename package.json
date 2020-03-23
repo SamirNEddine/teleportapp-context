@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Context service - Takes care of holding and synchronizing users contexts",
   "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -L --inspect=0.0.0.0:49542 ./server.js",
+    "production": "node ./server.js"
+  },
   "repository": "git@github.com-public:teleportlabs/context.git",
   "author": "Samir <samir@nevereatalone.io>",
   "license": "MIT",
