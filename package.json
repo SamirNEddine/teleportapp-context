@@ -1,0 +1,16 @@
+{
+  "name": "context",
+  "version": "1.0.0",
+  "description": "Context service - Takes care of holding and synchronizing users contexts",
+  "main": "server.js",
+  "repository": "git@github.com-public:teleportlabs/context.git",
+  "author": "Samir <samir@nevereatalone.io>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "googleapis": "^48.0.0",
+    "mongoose": "^5.9.5",
+    "redis": "^3.0.2"
+  }
+}
