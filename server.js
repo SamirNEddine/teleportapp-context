@@ -1,6 +1,7 @@
 require('dotenv').config();
 const {connectToDb} = require('./utils/mongoose');
 const api = require('./api');
+const bodyParser = require('body-parser');
 
 const express = require('express');
 
@@ -11,6 +12,7 @@ connectToDb();
 const app = express();
 
 /** api router **/
+app.use('/api', bodyParser.json());
 app.use('/api', api);
 
 /** Server status endpoint **/

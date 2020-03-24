@@ -12,6 +12,8 @@
   "author": "Samir <samir@nevereatalone.io>",
   "license": "MIT",
   "dependencies": {
+    "argon2": "^0.26.1",
+    "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "googleapis": "^48.0.0",
