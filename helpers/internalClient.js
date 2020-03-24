@@ -3,10 +3,10 @@ const argon2 = require('argon2');
 const InternalClient = require('../model/InternalClient');
 
 const generateClientId = function () {
-    return crypto.randomBytes(20).toString('base64').slice(0, 14);
+    return crypto.randomBytes(20).toString('base64').replace(/\//g,'_').replace(/\+/g,'-');
 };
 const generateClientSecret = function (clientId) {
-    return `${clientId}_${crypto.randomBytes(20).toString('base64').slice(0, 30)}_${clientId}`;
+    return crypto.randomBytes(64).toString('base64').replace(/\//g,'_').replace(/\+/g,'-');
 };
 const generateAndSaveClientSecret = async function (clientId) {
     const clientSecret = generateClientSecret(clientId);

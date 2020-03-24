@@ -9,6 +9,12 @@ const InternalClientSchema = Schema({
     clientSecret: {
         type: String,
         required: true
+    },
+    scope: {
+        type: String,
+        required: true,
+        enum: ['admin', 'client'],
+        default: 'client'
     }
 }, {timestamp: true});
 

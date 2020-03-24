@@ -6,18 +6,17 @@ const router = express.Router();
 
 router.post('/internal/generate', async function (req, res) {
     try {
-        const {clientId, clientSecret} = await generateAndSaveCredentials();
-        const client = InternalClient({clientId, clientSecret});
-        await client.save();
-        res.json({clientId, clientSecret});
+        const client = await InternalClient.findOne({clientId: req.body.clientId});
+        if(client.scope === 'admin'){
+            const {clientId, clientSecret} = await generateAndSaveCredentials();
+            res.json({clientId, clientSecret});
+        }else{
+            res.status(401).send('Unauthorized!');
+        }
     }catch(e){
         console.log(e);
-        res.status(400).send('Something went wrong');
+        res.status(400).send('Something went wrong!');
     }
-    const user = await User.findOne({_id: req.payload._id});
-    if (!user) return res.status(400).send('Something went wrong');
-
-    res.json({posts: `You are now receiving posts for user ${user.name}`});
 });
 
 module.exports = router;
