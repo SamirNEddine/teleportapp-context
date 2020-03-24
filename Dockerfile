@@ -4,7 +4,11 @@ WORKDIR /usr/src/app
 
 ADD . .
 
-RUN apk --no-cache --virtual build-dependencies add yarn \
+RUN apk --no-cache --virtual build-dependencies add \
+    python \
+    make \
+    yarn \
+    g++ &&\
     yarn && \
     yarn cache clean
 
