@@ -1,5 +1,7 @@
 require('dotenv').config();
 const {connectToDb} = require('./utils/mongoose');
+const api = require('./api');
+
 const express = require('express');
 
 /** Connect to the database **/
@@ -7,6 +9,9 @@ connectToDb();
 
 /** Express app **/
 const app = express();
+
+/** api router **/
+app.use('/api', api);
 
 /** Server status endpoint **/
 app.use('/status', function (req, res) {
