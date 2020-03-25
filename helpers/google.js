@@ -60,7 +60,7 @@ const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHou
     return calendarUpdates.items;
 };
 
-module.exports.performCalendarSync = async function (userIntegration, timeFrameInHours) {
+module.exports.performCalendarSync = async function (userIntegration, timeFrameInHours=120) {
     const calendarUpdates = await getCalendarEventsUpdates(userIntegration, timeFrameInHours);
     console.debug(calendarUpdates);
     const updates = [];
