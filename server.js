@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./jobs').config();
 const {connectToDb} = require('./utils/mongoose');
 const api = require('./api');
 const bodyParser = require('body-parser');

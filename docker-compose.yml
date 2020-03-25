@@ -34,6 +34,7 @@ services:
       NODE_ENV: development
       WAIT_HOSTS: mongo-context:27017
       WAIT_HOSTS_TIMEOUT: 60
+      NODE_DEBUG: bull
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
