@@ -45,3 +45,8 @@ services:
       - -ecx
       - |
         /wait && yarn run dev
+
+networks:
+  default:
+    external:
+      name: teleport
