@@ -8,7 +8,7 @@ router.get('/', async function (req, res) {
         const {userId, name} = req.query;
         const integration = await UserIntegration.findOne({userId, name});
         if(integration){
-            res.json({name, data: integration.data});
+            await res.json({name, data: integration.data});
         }else{
             res.status(400).send('Bad request!');
         }

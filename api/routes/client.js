@@ -9,7 +9,7 @@ router.post('/internal/generate', async function (req, res) {
         const client = await InternalClient.findOne({clientId: req.body.clientId});
         if(client.scope === 'admin'){
             const {clientId, clientSecret} = await generateAndSaveCredentials();
-            res.json({clientId, clientSecret});
+            await res.json({clientId, clientSecret});
         }else{
             res.status(401).send('Unauthorized!');
         }
