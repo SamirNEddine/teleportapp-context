@@ -96,7 +96,6 @@ const updateUnassignedList = function (timeSlot, list) {
 };
 
 const computeAvailabilityFromCalendarEvents = function (events, startTime, endTime) {
-    console.log(events);
     const busyTimeSlots = [];
     const focusTimeSlots = [];
     const availableTimeSlots = [];
@@ -107,8 +106,8 @@ const computeAvailabilityFromCalendarEvents = function (events, startTime, endTi
     }];
     events.forEach(event => {
         const timeSlot = {
-            start: event.startTimestamp > startTime ? event.startTimestamp : startTime,
-            end: event.endTimestamp > endTime ? event.endTimestamp : endTime,
+            start: event.startDateTime.getTime() < startTime ? startTime : event.startDateTime.getTime(),
+            end: event.endDateTime.getTime() > endTime ? endTime : event.endDateTime.getTime(),
             status: event.status
         };
         updateUnassignedList(timeSlot, unassignedTimeSlots);
