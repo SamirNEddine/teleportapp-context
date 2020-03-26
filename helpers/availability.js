@@ -2,7 +2,7 @@ const ROUND_FACTOR = 15;//in minutes
 
 const insertTimeSlotIntoList = function (timeSlot, list) {
     let i = 0;
-    let insertionIndex = -1;
+    let insertionIndex = null;
     while(i < list.length) {
         const ts = list[i];
         if(timeSlot.end < ts.start){
@@ -23,7 +23,7 @@ const insertTimeSlotIntoList = function (timeSlot, list) {
             }
         }
     }
-    list.splice(insertionIndex, 1, timeSlot);
+    list.splice(insertionIndex ? insertionIndex : i, 0, timeSlot);
 };
 
 const removeIntersectionsWithList = function (timeSlot, list) {
@@ -110,7 +110,7 @@ const computeAvailabilityFromCalendarEvents = function (events, startTime, endTi
             end: event.endDateTime.getTime() > endTime ? endTime : event.endDateTime.getTime(),
             status: event.status
         };
-        updateUnassignedList(timeSlot, unassignedTimeSlots);
+        updateUnassignedList({start: timeSlot.start, end: timeSlot.end}, unassignedTimeSlots);
         if(timeSlot.status === 'busy') {
             insertTimeSlotIntoList(timeSlot, busyTimeSlots);
         }else {
