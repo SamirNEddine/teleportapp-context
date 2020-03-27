@@ -12,7 +12,7 @@ calendarQueue.getRepeatableJobs().then( (jobs) => {
     }
     if(!existingSyncJob){
         console.log("Scheduling google calendar sync job");
-        calendarQueue.add("PerformSync", {}, {repeat:{every:process.env.JOB_GOOGLE_CALENDAR_SYNC_REPEAT_EVERY_IN_SECONDS*1000}});
+        calendarQueue.add("PerformSync", {}, {repeat:{every:60*1000}});
     }
 });
 

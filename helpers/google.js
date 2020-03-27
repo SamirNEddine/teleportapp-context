@@ -13,7 +13,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
-    console.debug("Calendar updates with time syncToken");
+    console.debug("Check for calendar updates with syncToken");
     const response = await calendar.events.list({
         calendarId: 'primary',
         syncToken
@@ -21,7 +21,7 @@ const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
     return response.data;
 };
 const getCalendarEventsUpdatesWithISODates = async function(calendar, timeMin, timeMax){
-    console.debug("Calendar updates with time frame");
+    console.debug("Check for calendar updates with time frame");
     const response = await calendar.events.list({
         calendarId: 'primary',
         timeMax,
@@ -62,7 +62,6 @@ const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHou
 
 module.exports.performCalendarSync = async function (userIntegration, timeFrameInHours=120) {
     const calendarUpdates = await getCalendarEventsUpdates(userIntegration, timeFrameInHours);
-    console.debug(calendarUpdates);
     const updates = [];
     for(let i=0; i<calendarUpdates.length; i++){
         const update = calendarUpdates[i];
@@ -91,6 +90,11 @@ module.exports.performCalendarSync = async function (userIntegration, timeFrameI
     }
 
     if(updates.length){
+        console.log(calendarUpdates);
         await CalendarEvent.bulkWrite(updates);
+        return {updates: true};
+    }else{
+        console.log('No updates!');
+        return {updates: false};
     }
 };
