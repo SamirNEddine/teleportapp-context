@@ -24,9 +24,9 @@ module.exports = async function (job, done) {
     if(scheduledJobs && scheduledJobs.length){
         console.log("STATUS_CHANGE_SCHEDULER :::: CLEANING EXISTING SCHEDULED JOBS");
         await Promise.all(scheduledJobs.map(async (jobId) => {
-            const job = statusChangeQueue.getJobFromId(jobId);
+            const job = await statusChangeQueue.getJobFromId(jobId);
             console.log("STATUS_CHANGE_SCHEDULER :::: REMOVING JOB:", jobId);
-            job.remove();
+            await job.remove();
         }));
         await redisDelAsync(redisEntry);
     }
@@ -45,7 +45,7 @@ module.exports = async function (job, done) {
         jobs.push(jobId);
     }));
     redisSetAsync(redisEntry, JSON.stringify(jobs));
-    disconnectFromDb();
+    await disconnectFromDb();
 
     console.log('\n');
     console.log('#####################################################');

@@ -22,7 +22,7 @@ module.exports = async function (job) {
             rescheduleStatusChangeForUser(u.userId);
         }
     }));
-    disconnectFromDb();
+    await disconnectFromDb();
 
     console.log('\n');
     console.log('#####################################################');
