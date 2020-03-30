@@ -10,6 +10,9 @@ jobsSchedulerQueue.process('StatusChangeScheduler', 10,`${__dirname}/statusChang
 /** Status change job **/
 const statusChangeQueue = new Queue('Status Change Job', `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
 statusChangeQueue.process('StatusChangeJob', 10,`${__dirname}/statusChangeJob.js`);
+statusChangeQueue.on('completed', function (jobs) {
+    console.log("job completed", jobs.data);
+});
 
 /** Exports **/
 module.exports.rescheduleStatusChangeForUser = rescheduleStatusChangeForUser;

@@ -19,7 +19,7 @@ module.exports = async function (job, done) {
         console.log("Status change JOB Done!", job.data);
     }
 
-    await connectToDb();
+    await disconnectFromDb();
     console.log('\n');
     console.log('#####################################################');
     console.log('#####################################################');
