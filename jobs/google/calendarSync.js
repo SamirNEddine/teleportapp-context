@@ -2,12 +2,13 @@ const UserIntegration = require('../../model/UserIntegration');
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const {performCalendarSync} = require('../../helpers/google');
 const {rescheduleStatusChangeForUser} = require('../status');
+const {CALENDAR_SYNC_REPEATABLE_JOB} = require('./index');
 
 module.exports = async function (job, done) {
     console.log('\n');
     console.log('#####################################################');
     console.log('#####################################################');
-    console.log("CALENDAR_SYNC_JOB :::: START");
+    console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: START`);
     console.log('#####################################################');
     console.log('#####################################################');
     console.log('\n');
@@ -18,7 +19,7 @@ module.exports = async function (job, done) {
     await Promise.all( users.map(async (u) => {
         const {updates} = await performCalendarSync(u);
         if(updates){
-            console.log("CALENDAR_SYNC_JOB :::: GOT UPDATES: RESCHEDULE STATUS CHANGE JOBS");
+            console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: GOT UPDATES: RESCHEDULE STATUS CHANGE JOBS`);
             rescheduleStatusChangeForUser(u.userId);
         }
     }));
@@ -27,7 +28,7 @@ module.exports = async function (job, done) {
     console.log('\n');
     console.log('#####################################################');
     console.log('#####################################################');
-    console.log("CALENDAR_SYNC_JOB :::: END");
+    console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: END`);
     console.log('#####################################################');
     console.log('#####################################################');
     console.log('\n');
