@@ -15,5 +15,8 @@ calendarQueue.getRepeatableJobs().then( (jobs) => {
         calendarQueue.add("PerformSync", {}, {repeat:{every:60*1000}});
     }
 });
+calendarQueue.on('failed', function(job, err){
+    console.log("CALENDAR_SYNC_JOB :::: FAILED!", err);
+});
 
 calendarQueue.process('PerformSync', 1,`${__dirname}/calendarSync.js`);

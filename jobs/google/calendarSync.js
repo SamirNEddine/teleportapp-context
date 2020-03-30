@@ -3,7 +3,7 @@ const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const {performCalendarSync} = require('../../helpers/google');
 const {rescheduleStatusChangeForUser} = require('../status');
 
-module.exports = async function (job) {
+module.exports = async function (job, done) {
     console.log('\n');
     console.log('#####################################################');
     console.log('#####################################################');
