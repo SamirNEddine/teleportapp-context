@@ -9,6 +9,8 @@ services:
       - 6379
     ports:
       - 6378:6379
+    logging:
+      driver: "none"
   mongo-context:
     build: ./mongo
     container_name: mongo-context
@@ -16,6 +18,8 @@ services:
       - 27017
     ports:
       - 27018:27017
+    logging:
+      driver: "none"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin

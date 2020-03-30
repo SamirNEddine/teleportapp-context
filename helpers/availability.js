@@ -95,7 +95,7 @@ const updateUnassignedList = function (timeSlot, list) {
     }
 };
 
-const computeAvailabilityFromCalendarEvents = function (events, startTime, endTime) {
+const computeAvailabilityFromCalendarEvents = function (events, startTime, endTime=Number.POSITIVE_INFINITY) {
     const busyTimeSlots = [];
     const focusTimeSlots = [];
     const availableTimeSlots = [];

@@ -12,6 +12,6 @@ module.exports.connectToDb = function () {
         }
     });
 };
-module.exports.disconnectFromDb = function () {
-    mongoose.disconnect();
+module.exports.disconnectFromDb = async function () {
+    await mongoose.disconnect();
 };
