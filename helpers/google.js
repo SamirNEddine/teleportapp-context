@@ -1,16 +1,31 @@
 const {google} = require('googleapis');
 const CalendarEvent = require('../model/CalendarEvent');
 
-const syncMinTimeFrameInHours = 120;
-const syncTimeFrameMarginInHours=48;
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-
+const syncMinTimeFrameInHours = 120;
+const syncTimeFrameMarginInHours = 48;
+const TELEPORT_STATUS_TOKEN_IN_ID = 'tlprt';
 const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
     'https://tlprt.io/google/auth'
 );
+
+const getStatusForEvent = function (event) {
+    if(event.id.includes(TELEPORT_STATUS_TOKEN_IN_ID)){
+        const status = event.id.split(TELEPORT_STATUS_TOKEN_IN_ID)[1];
+        console.log("TESTING", event.id.split(TELEPORT_STATUS_TOKEN_IN_ID), status)
+        switch (status) {
+            case '1':
+                return 'focus';
+            case '2':
+                return 'available';
+        }
+    }else{
+        return 'busy';
+    }
+};
 
 const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
     console.debug("Check for calendar updates with syncToken");
@@ -81,6 +96,7 @@ module.exports.performCalendarSync = async function (userIntegration, timeFrameI
                         userId: userIntegration.userId,
                         startDateTime: new Date(update.start.dateTime),
                         endDateTime: new Date(update.end.dateTime),
+                        status: getStatusForEvent(update)
                     },
                     upsert: true,
                     setDefaultsOnInsert: true
