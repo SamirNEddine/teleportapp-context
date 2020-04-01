@@ -14,7 +14,8 @@ module.exports = async function (job, done) {
     console.log('\n');
 
     await connectToDb();
-    const users = await UserIntegration.find({name:'google'});
+    const {userId} = job.data;
+    const users = userId ? [await UserIntegration.findOne({name:'google', userId})] : await UserIntegration.find({name:'google'});
 
     await Promise.all( users.map(async (u) => {
         const {updates} = await performCalendarSync(u);
