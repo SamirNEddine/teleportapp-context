@@ -2,7 +2,7 @@ const express = require ('express');
 const UserIntegration = require('../../model/UserIntegration');
 const CalendarEvent = require('../../model/CalendarEvent');
 const {performCalendarSync} = require('../../helpers/google');
-const {computeAvailabilityFromCalendarEvents} = require('../../helpers/availability');
+const {computeAvailabilityFromCalendarEvents} = require('../../availability');
 
 const router = express.Router();
 

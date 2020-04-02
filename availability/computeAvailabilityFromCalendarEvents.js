@@ -132,4 +132,4 @@ const computeAvailabilityFromCalendarEvents = function (events, startTime, endTi
     return {busyTimeSlots, focusTimeSlots, availableTimeSlots, unassignedTimeSlots};
 };
 
-module.exports.computeAvailabilityFromCalendarEvents = computeAvailabilityFromCalendarEvents;
+module.exports = computeAvailabilityFromCalendarEvents;
