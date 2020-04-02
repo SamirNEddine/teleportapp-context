@@ -1,1 +1,2 @@
-module.exports.computeAvailabilityFromCalendarEvents = require('./computeAvailabilityFromCalendarEvents');
+module.exports.computeAvailabilityFromCalendarEvents = require('./availabilityFromCalendar');
+module.exports.computeCalendarSuggestionFromAvailability = require('./calendarFromAvailability');

@@ -95,7 +95,7 @@ const updateUnassignedList = function (timeSlot, list) {
     }
 };
 
-const computeAvailabilityFromCalendarEvents = function (events, startTime, endTime=Number.POSITIVE_INFINITY) {
+const availabilityFromCalendar = function (events, startTime, endTime=Number.POSITIVE_INFINITY) {
     const busyTimeSlots = [];
     const focusTimeSlots = [];
     const availableTimeSlots = [];
@@ -132,4 +132,4 @@ const computeAvailabilityFromCalendarEvents = function (events, startTime, endTi
     return {busyTimeSlots, focusTimeSlots, availableTimeSlots, unassignedTimeSlots};
 };
 
-module.exports = computeAvailabilityFromCalendarEvents;
+module.exports = availabilityFromCalendar;
