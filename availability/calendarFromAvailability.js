@@ -7,7 +7,7 @@ const canAssignFocusToSlot = function (timeSlot, minFocus) {
 };
 const canAssignAvailableToSlot = function (timeSlot, minFocus) {
     const duration = timeSlot.end - timeSlot.start;
-    return duration / (minFocus * 60 * 1000) < 1 || duration / (minFocus * 60 * 1000) > 2;
+    return duration / (minFocus * 60 * 1000) < 1 || duration / (minFocus * 60 * 1000) >= 2;
 };
 const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFocus, minAvailable) {
     const result = [];
@@ -15,7 +15,7 @@ const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFo
     if(duration /  (minFocus * 60 * 1000) > 2) {
         if (duration /  (minFocus * 60 * 1000) < 6){
             //One available in the middle
-            const availableSlotStart = focusTimeSlot.start + Math.floor(duration /  2);
+            const availableSlotStart = focusTimeSlot.start + Math.floor((duration /  (minFocus * 60 * 1000)) / 2)*minFocus*60*1000 + ( (duration /  (minFocus * 60 * 1000))%1 >=0.5 ? minFocus*60*1000 : 0);
             const availableSlot = {start: availableSlotStart, end: availableSlotStart+minAvailable*60*1000, status: 'available'};
             result.push({start: focusTimeSlot.start, end: availableSlot.start, status: 'focus'});
             result.push(availableSlot);
