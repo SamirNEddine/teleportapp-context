@@ -1,5 +1,4 @@
 const config = function () {
-
     //Array
     Array.prototype.insertASCSorted = function(value){
         let i = 0;
@@ -10,4 +9,4 @@ const config = function () {
     };
 };
 
-module.exports.config = config();
+module.exports.config = config;
