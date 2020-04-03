@@ -1,3 +1,4 @@
+require('./utils').config();
 require('dotenv').config();
 require('./jobs').config();
 const {connectToDb} = require('./utils/mongoose');

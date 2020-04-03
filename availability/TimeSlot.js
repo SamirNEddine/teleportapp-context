@@ -21,4 +21,7 @@ module.exports = class TimeSlot {
     toObject() {
         return {start: this.start, end: this.end, status: this.status};
     }
+    valueOf(timeSlot) {
+        return this.start;
+    }
 };
