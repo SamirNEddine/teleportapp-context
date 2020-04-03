@@ -1,3 +1,4 @@
+const {TimeSlot} = require('./index');
 const ROUND_FACTOR = 15;//in minutes
 
 const insertTimeSlotIntoList = function (timeSlot, list) {
@@ -43,11 +44,7 @@ const removeIntersectionsWithList = function (timeSlot, list) {
             };
             if(intersection.start > timeSlot.start){
                 //Push the first part of the timeSlot divided by the intersection
-                result.push({
-                    start: timeSlot.start,
-                    end: intersection.start,
-                    status: timeSlot.status
-                });
+                result.push(new TimeSlot(timeSlot.start, intersection.start, timeSlot.status));
             }
             timeSlot.start = intersection.end;
         }
@@ -71,16 +68,8 @@ const updateUnassignedList = function (timeSlot, list) {
                 start: ts.start > timeSlot.start ? ts.start : timeSlot.start,
                 end: ts.end < timeSlot.end ? ts.end : timeSlot.end
             };
-            const T1 = {
-                start: ts.start,
-                end: intersection.start,
-                status: 'unassigned'
-            };
-            const T2 = {
-                start: intersection.end,
-                end: ts.end,
-                status: 'unassigned'
-            };
+            const T1 = new TimeSlot(ts.start, intersection.start, 'unassigned');
+            const T2 = new TimeSlot(intersection.end, ts.end, 'unassigned');
             list.splice(i, 1);
             if(T1.end > T1.start){
                 list.splice(i, 0, T1);
@@ -99,18 +88,13 @@ const availabilityFromCalendar = function (events, startTime, endTime=Number.POS
     const busyTimeSlots = [];
     const focusTimeSlots = [];
     const availableTimeSlots = [];
-    const unassignedTimeSlots = [{
-        start: startTime,
-        end: endTime,
-        status: 'unassigned'
-    }];
+    const unassignedTimeSlots = [new TimeSlot(startTime, endTime, 'unassigned')];
     events.forEach(event => {
-        const timeSlot = {
-            start: event.startDateTime.getTime() < startTime ? startTime : event.startDateTime.getTime(),
-            end: event.endDateTime.getTime() > endTime ? endTime : event.endDateTime.getTime(),
-            status: event.status
-        };
-        updateUnassignedList({start: timeSlot.start, end: timeSlot.end}, unassignedTimeSlots);
+        const timeSlot = new TimeSlot(
+            event.startDateTime.getTime() < startTime ? startTime : event.startDateTime.getTime(),
+            event.endDateTime.getTime() > endTime ? endTime : event.endDateTime.getTime(),
+            event.status);
+        updateUnassignedList(new TimeSlot(timeSlot.start, timeSlot.end, timeSlot.status), unassignedTimeSlots);
         if(timeSlot.status === 'busy') {
             insertTimeSlotIntoList(timeSlot, busyTimeSlots);
         }else {
