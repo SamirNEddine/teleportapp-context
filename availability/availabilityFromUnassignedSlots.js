@@ -19,7 +19,7 @@ const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFo
             result.push(new TimeSlot(availableSlot.end, focusTimeSlot.end, 'focus'));
         }else{
             //One available every 2 focus units
-            const numberOfAvailableSlotsToInsert = Math.floor((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2);
+            const numberOfAvailableSlotsToInsert = Math.floor((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2) - 1;
             for(let i=0;i<numberOfAvailableSlotsToInsert; i++){
                 const availableSlotStart = focusTimeSlot.start + 2*minFocus * 60 * 1000;
                 const availableSlot = new TimeSlot(availableSlotStart, availableSlotStart+minAvailable*60*1000, 'available');
@@ -72,11 +72,9 @@ const calendarEventForTimeSlot = function (timeSlot, calendarIntegrationName) {
 };
 
 //minAvailable and minFocus are in minutes
-const computeAvailabilityFromUnassignedSlots = function (unassignedSlots, minAvailable, minFocus) {
-    const suggestedSchedule = [];
-    let totalTimeAvailable = 0;
-    let totalTimeFocus = 0;
-    unassignedSlots.forEach(timeSlot => {
+const computeAvailabilitySuggestionsFromUnassignedSlots = function (availability, minAvailable, minFocus) {
+    const unassignedTimeSlots = [...availability.unassignedTimeSlots];
+    unassignedTimeSlots.forEach(timeSlot => {
         let focusTimeSlotCandidate = null;
         let availableTimeSlotCandidate = null;
         if(canAssignFocusToSlot(timeSlot, minFocus)){
@@ -89,18 +87,16 @@ const computeAvailabilityFromUnassignedSlots = function (unassignedSlots, minAva
             }
         }
         if(availableTimeSlotCandidate){
-            suggestedSchedule.push(availableTimeSlotCandidate);
-            totalTimeAvailable += availableTimeSlotCandidate.duration;
+            availability.addTimeSlot(availableTimeSlotCandidate);
         }
         if(focusTimeSlotCandidate){
             const slots = insertAvailableSlotsInFocusSlotIfRelevant(focusTimeSlotCandidate, minFocus, minAvailable);
             slots.forEach(slot => {
-                suggestedSchedule.push(slot);
-                (slot.status === 'available') ? totalTimeAvailable += slot.duration : totalTimeFocus += slot.duration;
+                availability.addTimeSlot(slot);
             });
         }
     });
-    return {availability: suggestedSchedule, totalTimeAvailable, totalTimeFocus};
+    return availability;
 };
 
-module.exports = computeAvailabilityFromUnassignedSlots;
+module.exports = computeAvailabilitySuggestionsFromUnassignedSlots;
