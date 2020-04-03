@@ -131,11 +131,11 @@ module.exports = class Availability {
      };
      toObject() {
          return {
-             busyTimeSlots: this.busyTimeSlots,
-             focusTimeSlots: this.focusTimeSlots,
-             availableTimeSlots: this.availableTimeSlots,
-             unassignedTimeSlots: this.unassignedTimeSlots,
-             schedule:this.schedule,
+             busyTimeSlots: this.busyTimeSlots.map( ts => {return ts.toObject()}),
+             focusTimeSlots: this.focusTimeSlots.map( ts => {return ts.toObject()}),
+             availableTimeSlots: this.availableTimeSlots.map( ts => {return ts.toObject()}),
+             unassignedTimeSlots: this.unassignedTimeSlots.map( ts => {return ts.toObject()}),
+             schedule:this.schedule.map( ts => {return ts.toObject()}),
              totalTimeBusy: this.totalTimeBusy,
              totalTimeFocus: this.totalTimeFocus,
              totalTimeAvailable: this.totalTimeAvailable,

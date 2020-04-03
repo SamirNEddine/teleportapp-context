@@ -34,12 +34,12 @@ module.exports = class TimeSlot {
         return `${numberOfHours > 0 ? numberOfHours.toString() + ' hours' + (numberOfMinutes > 0 ? ' and ' : '') : ''}${numberOfMinutes > 0 ? numberOfMinutes.toString() + ' minutes' : ''}`;
     }
     [util.inspect.custom](depth, opts) {
-        return {start: new Date(this.start), end: new Date(this.end), status: this.status, duration: this.formatDuration()};
+        return {start: new Date(this._start), end: new Date(this._end), status: this.status, duration: this.formatDuration()};
     }
     toObject() {
-        return {start: this.start, end: this.end, status: this.status};
+        return {start: this._start, end: this._end, status: this.status};
     }
     valueOf(timeSlot) {
-        return this.start;
+        return this._start;
     }
 };
