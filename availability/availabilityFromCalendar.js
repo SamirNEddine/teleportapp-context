@@ -1,4 +1,4 @@
-const {TimeSlot} = require('./index');
+const TimeSlot = require('./TimeSlot');
 const ROUND_FACTOR = 15;//in minutes
 
 const insertTimeSlotIntoList = function (timeSlot, list) {

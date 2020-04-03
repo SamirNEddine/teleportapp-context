@@ -1,11 +1,11 @@
-const {TimeSlot} = require('./index');
+const TimeSlot = require('./TimeSlot');
 
 //minFocus is in minutes
 const canAssignFocusToSlot = function (timeSlot, minFocus) {
     return timeSlot.duration / (minFocus * 60 * 1000) >= 1;
 };
 const canAssignAvailableToSlot = function (timeSlot, minFocus) {
-    return timeSlot.duration / (minFocus * 60 * 1000) < 1 || duration / (minFocus * 60 * 1000) >= 2;
+    return timeSlot.duration / (minFocus * 60 * 1000) < 1 || timeSlot.duration / (minFocus * 60 * 1000) >= 2;
 };
 const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFocus, minAvailable) {
     const result = [];
@@ -72,7 +72,7 @@ const calendarEventForTimeSlot = function (timeSlot, calendarIntegrationName) {
 };
 
 //minAvailable and minFocus are in minutes
-const computeAvailabilityFromUnassignedSlots = function (calendarIntegrationName, unassignedSlots, minAvailable, minFocus) {
+const computeAvailabilityFromUnassignedSlots = function (unassignedSlots, minAvailable, minFocus) {
     const suggestedSchedule = [];
     let totalTimeAvailable = 0;
     let totalTimeFocus = 0;

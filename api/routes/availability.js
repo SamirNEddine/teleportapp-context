@@ -2,7 +2,7 @@ const express = require ('express');
 const UserIntegration = require('../../model/UserIntegration');
 const CalendarEvent = require('../../model/CalendarEvent');
 const {performCalendarSync} = require('../../helpers/google');
-const {computeAvailabilityFromCalendarEvents, computeCalendarSuggestionFromAvailability} = require('../../availability');
+const {computeAvailabilityFromCalendarEvents, computeAvailabilityFromUnassignedSlots} = require('../../availability');
 
 const router = express.Router();
 
@@ -36,7 +36,7 @@ router.get('/', async function (req, res) {
             const availability = computeAvailabilityFromCalendarEvents(events, parseInt(startTimestamp), parseInt(endTimestamp));
             const {unassignedTimeSlots} = availability;
             console.log('CALENDAR SUGGESTIONS:');
-            console.log(computeCalendarSuggestionFromAvailability('google', unassignedTimeSlots, 15, 60));
+            console.log(computeAvailabilityFromUnassignedSlots(unassignedTimeSlots, 15, 60));
             await res.json(availability);
         }
     }catch (e) {
