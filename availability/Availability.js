@@ -15,12 +15,36 @@ module.exports = class Availability {
     totalTimeUnassigned = 0;
     totalTimeScheduled = 0;
     constructor(startTime, endTime) {
-        const timeSlot = new TimeSlot(startTime, endTime, 'unassigned');
-        this.unassignedTimeSlots = [timeSlot];
-        this.totalTimeUnassigned = timeSlot.duration;
+        const initTimeSlot = new TimeSlot(startTime, endTime, 'unassigned');
+        this.unassignedTimeSlots = [initTimeSlot];
+        this.totalTimeUnassigned = initTimeSlot.duration;
     }
 
     /** Private methods **/
+    _addTotalTimeForStatus(time, status) {
+        switch (status) {
+            case 'busy':
+            {
+                this.totalTimeBusy += time;
+                break;
+            }
+            case 'focus':
+            {
+                this.totalTimeFocus += time;
+                break;
+            }
+            case 'available':
+            {
+                this.totalTimeAvailable += time;
+                break;
+            }
+            case 'unassigned':
+            {
+                this.totalTimeUnassigned += time;
+                break;
+            }
+        }
+    };
     _insertTimeSlotIntoList(timeSlot, list) {
         let i = 0;
         let insertionIndex = null;
@@ -41,6 +65,7 @@ module.exports = class Availability {
                 list.splice(i, 1);
                 this.totalTimeScheduled -= ts.duration;
                 this.schedule = this.schedule.filter( t => {return !(t.start === ts.start && t.end === ts.end)});
+                this._addTotalTimeForStatus(-ts.duration, ts.status);
                 if(!insertionIndex){
                     insertionIndex = i;
                 }
@@ -49,6 +74,7 @@ module.exports = class Availability {
         list.splice(insertionIndex ? insertionIndex : i, 0, timeSlot);
         this.totalTimeScheduled += timeSlot.duration;
         this.schedule.insertASCSorted(timeSlot);
+        this._addTotalTimeForStatus(timeSlot.duration, timeSlot.status);
     };
     _removeIntersectionsWithList (timeSlot, list) {
         const result = [];
@@ -93,14 +119,15 @@ module.exports = class Availability {
                 const T1 = new TimeSlot(ts.start, intersection.start, 'unassigned');
                 const T2 = new TimeSlot(intersection.end, ts.end, 'unassigned');
                 this.unassignedTimeSlots.splice(i, 1);
+                this._addTotalTimeForStatus(-ts.duration, 'unassigned');
                 if(T1.end > T1.start){
                     this.unassignedTimeSlots.splice(i, 0, T1);
-                    this.totalTimeUnassigned -= T1.duration;
+                    this._addTotalTimeForStatus(T1.duration, 'unassigned');
                     i++;
                 }
                 if(T2.end > T2.start){
                     this.unassignedTimeSlots.splice(i, 0, T2);
-                    this.totalTimeUnassigned -= T2.duration;
+                    this._addTotalTimeForStatus(T2.duration, 'unassigned');
                 }
                 timeSlot.start = intersection.end;
                 i++;
