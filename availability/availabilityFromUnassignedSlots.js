@@ -1,32 +1,29 @@
-const {computeAvailabilityFromCalendarEvents} = require('./index');
+const {TimeSlot} = require('./index');
 
 //minFocus is in minutes
 const canAssignFocusToSlot = function (timeSlot, minFocus) {
-    const duration = timeSlot.end - timeSlot.start;
-    return duration / (minFocus * 60 * 1000) >= 1;
+    return timeSlot.duration / (minFocus * 60 * 1000) >= 1;
 };
 const canAssignAvailableToSlot = function (timeSlot, minFocus) {
-    const duration = timeSlot.end - timeSlot.start;
-    return duration / (minFocus * 60 * 1000) < 1 || duration / (minFocus * 60 * 1000) >= 2;
+    return timeSlot.duration / (minFocus * 60 * 1000) < 1 || duration / (minFocus * 60 * 1000) >= 2;
 };
 const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFocus, minAvailable) {
     const result = [];
-    const duration = focusTimeSlot.end - focusTimeSlot.start;
-    if(duration /  (minFocus * 60 * 1000) > 2) {
-        if (duration /  (minFocus * 60 * 1000) < 6){
+    if(focusTimeSlot.duration /  (minFocus * 60 * 1000) > 2) {
+        if (focusTimeSlot.duration /  (minFocus * 60 * 1000) < 6){
             //One available in the middle
-            const availableSlotStart = focusTimeSlot.start + Math.floor((duration /  (minFocus * 60 * 1000)) / 2)*minFocus*60*1000 + ( (duration /  (minFocus * 60 * 1000))%1 >=0.5 ? minFocus*60*1000 : 0);
-            const availableSlot = {start: availableSlotStart, end: availableSlotStart+minAvailable*60*1000, status: 'available'};
-            result.push({start: focusTimeSlot.start, end: availableSlot.start, status: 'focus'});
+            const availableSlotStart = focusTimeSlot.start + Math.floor((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2)*minFocus*60*1000 + ( (focusTimeSlot.duration /  (minFocus * 60 * 1000))%1 >=0.5 ? minFocus*60*1000 : 0);
+            const availableSlot = new TimeSlot(availableSlotStart, availableSlotStart+minAvailable*60*1000, 'available');
+            result.push(new TimeSlot(focusTimeSlot.start, availableSlot.start, 'focus'));
             result.push(availableSlot);
-            result.push({start: availableSlot.end, end: focusTimeSlot.end, status: 'focus'});
+            result.push(new TimeSlot(availableSlot.end, focusTimeSlot.end, 'focus'));
         }else{
             //One available every 2 focus units
-            const numberOfAvailableSlotsToInsert = Math.floor((duration /  (minFocus * 60 * 1000)) / 2);
+            const numberOfAvailableSlotsToInsert = Math.floor((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2);
             for(let i=0;i<numberOfAvailableSlotsToInsert; i++){
                 const availableSlotStart = focusTimeSlot.start + 2*minFocus * 60 * 1000;
-                const availableSlot = {start: availableSlotStart, end: availableSlotStart+minAvailable*60*1000, status: 'available'};
-                result.push({start: focusTimeSlot.start, end: availableSlot.start, status: 'focus'});
+                const availableSlot = new TimeSlot(availableSlotStart, availableSlotStart+minAvailable*60*1000, 'available');
+                result.push(new TimeSlot(focusTimeSlot.start, availableSlot.start, 'focus'));
                 result.push(availableSlot);
                 focusTimeSlot.start = availableSlot.end;
             }
@@ -77,34 +74,33 @@ const calendarEventForTimeSlot = function (timeSlot, calendarIntegrationName) {
 //minAvailable and minFocus are in minutes
 const computeAvailabilityFromUnassignedSlots = function (calendarIntegrationName, unassignedSlots, minAvailable, minFocus) {
     const suggestedSchedule = [];
-    let currentTotalAvailable = 0;//in minutes
+    let totalTimeAvailable = 0;
+    let totalTimeFocus = 0;
     unassignedSlots.forEach(timeSlot => {
         let focusTimeSlotCandidate = null;
         let availableTimeSlotCandidate = null;
         if(canAssignFocusToSlot(timeSlot, minFocus)){
-            focusTimeSlotCandidate = {start: timeSlot.start, end: timeSlot.end, status: 'focus'};
+            focusTimeSlotCandidate = new TimeSlot(timeSlot.start, timeSlot.end, 'focus');
         }
         if(canAssignAvailableToSlot(timeSlot, minFocus)){
-            availableTimeSlotCandidate = {start: timeSlot.start, end: timeSlot.start + minAvailable*60*1000, status: 'available'};
+            availableTimeSlotCandidate = new TimeSlot(timeSlot.start, timeSlot.start + minAvailable*60*1000, 'available');
             if(focusTimeSlotCandidate){
                 focusTimeSlotCandidate.start = availableTimeSlotCandidate.end;
             }
         }
         if(availableTimeSlotCandidate){
             suggestedSchedule.push(availableTimeSlotCandidate);
-            currentTotalAvailable += minAvailable;
+            totalTimeAvailable += availableTimeSlotCandidate.duration;
         }
         if(focusTimeSlotCandidate){
             const slots = insertAvailableSlotsInFocusSlotIfRelevant(focusTimeSlotCandidate, minFocus, minAvailable);
             slots.forEach(slot => {
                 suggestedSchedule.push(slot);
-                if (slot.status === 'available') {
-                    currentTotalAvailable += minAvailable;
-                }
+                (slot.status === 'available') ? totalTimeAvailable += slot.duration : totalTimeFocus += slot.duration;
             });
         }
     });
-    return suggestedSchedule;
+    return {availability: suggestedSchedule, totalTimeAvailable, totalTimeFocus};
 };
 
 module.exports = computeAvailabilityFromUnassignedSlots;
