@@ -29,8 +29,6 @@ router.get('/suggested', async function (req, res) {
             res.status(400).send('Bad request!');
         }else{
             const availability = await computeAvailabilityFromCalendarEvents(userId, parseInt(startTimestamp), parseInt(endTimestamp));
-            console.log('CALENDAR SUGGESTIONS:');
-            console.log(computeAvailabilitySuggestionsFromUnassignedSlots(availability, minAvailableSlotInMinutes, minFocusSlotInMinutes));
             await res.json(availability.toObject());
         }
     }catch (e) {
