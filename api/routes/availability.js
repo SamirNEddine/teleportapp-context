@@ -34,8 +34,6 @@ router.get('/', async function (req, res) {
                     }]
             });
             const availability = computeAvailabilityFromCalendarEvents(events, parseInt(startTimestamp), parseInt(endTimestamp));
-            console.log('CALENDAR SUGGESTIONS:');
-            console.log(computeAvailabilitySuggestionsFromUnassignedSlots(availability, 15, 60));
             await res.json(availability.toObject());
         }
     }catch (e) {
