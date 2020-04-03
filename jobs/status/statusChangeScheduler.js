@@ -1,6 +1,6 @@
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const CalendarEvent = require('../../model/CalendarEvent');
-const {computeAvailabilityFromCalendarEvents} = require('../../helpers/availability');
+const {computeAvailabilityFromCalendarEvents} = require('../../availability');
 const {redisGetAsync, redisDelAsync, redisSetAsync} = require('../../utils/redis');
 const Queue = require('bull');
 const {REDIS_PREFIX, STATUS_CHANGE_QUEUE_NAME, STATUS_CHANGE_SCHEDULER_JOB, STATUS_CHANGE_JOB} = require('./index');
