@@ -32,12 +32,12 @@ const getCalendarEvents = async function (userId, startTimestamp, endTimestamp) 
 const availabilityFromCalendar = async function (userId, startTime, endTime=8640000000000000) {
     const events = await getCalendarEvents(userId, startTime, endTime);
     const availability = new Availability(startTime, endTime);
-    events.forEach(event => {
+    await Promise.all( events.map(async (event) => {
         availability.addTimeSlot(new TimeSlot(
             event.startDateTime.getTime() < startTime ? startTime : event.startDateTime.getTime(),
             event.endDateTime.getTime() > endTime ? endTime : event.endDateTime.getTime(),
             event.status));
-    });
+    }));
     return availability;
 };
 

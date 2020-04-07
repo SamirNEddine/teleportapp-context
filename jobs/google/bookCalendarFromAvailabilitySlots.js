@@ -2,36 +2,29 @@ require('../../utils').config();
 require('dotenv').config();
 const UserIntegration = require('../../model/UserIntegration');
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
-const {performCalendarSync} = require('../../helpers/google');
-const {rescheduleStatusChangeForUser} = require('../status');
-const {CALENDAR_SYNC_REPEATABLE_JOB} = require('./index');
+const {bookCalendarEventsFromTimeSlots} = require('../../helpers/google');
+const {CALENDAR_BOOK_FROM_AVAILABILITY_JOB, syncCalendarForUser} = require('./index');
 
 module.exports = async function (job, done) {
     console.log('\n');
     console.log('#####################################################');
     console.log('#####################################################');
-    console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: START`);
+    console.log(`${CALENDAR_BOOK_FROM_AVAILABILITY_JOB} :::: START`);
     console.log('#####################################################');
     console.log('#####################################################');
     console.log('\n');
 
     await connectToDb();
-    const {userId} = job.data;
-    const users = userId ? [await UserIntegration.findOne({name:'google', userId})] : await UserIntegration.find({name:'google'});
-
-    await Promise.all( users.map(async (u) => {
-        const {updates} = await performCalendarSync(u);
-        if(updates){
-            console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: GOT UPDATES: RESCHEDULE STATUS CHANGE JOBS`);
-            rescheduleStatusChangeForUser(u.userId);
-        }
-    }));
+    const {userId, timeSlots} = job.data;
+    const integrationData = await UserIntegration.findOne({name:'google', userId});
+    await bookCalendarEventsFromTimeSlots(integrationData, timeSlots);
+    syncCalendarForUser(userId);
     await disconnectFromDb();
 
     console.log('\n');
     console.log('#####################################################');
     console.log('#####################################################');
-    console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: END`);
+    console.log(`${CALENDAR_BOOK_FROM_AVAILABILITY_JOB} :::: END`);
     console.log('#####################################################');
     console.log('#####################################################');
     console.log('\n');
