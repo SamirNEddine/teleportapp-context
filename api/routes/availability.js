@@ -1,11 +1,23 @@
 const express = require ('express');
-const {computeAvailabilityFromCalendarEvents, computeAvailabilitySuggestionsFromUnassignedSlots} = require('../../availability');
+const {computeAvailabilityFromCalendarEvents} = require('../../availability');
 
 const router = express.Router();
 
 router.get('/current', async function (req, res) {
     try {
-
+        const {userId, startTimestamp, endTimestamp} = req.query;
+        if(!userId || !parseInt(startTimestamp) || !parseInt(endTimestamp)){
+            res.status(400).send('Bad request!');
+        }else{
+            const now = new Date().getTime();
+            if(now < parseInt(startTimestamp)) {
+                await res.json({start:now, end: parseInt(startTimestamp), status: 'unassigned'});
+            }else {
+                const availability = await computeAvailabilityFromCalendarEvents(userId, parseInt(startTimestamp), parseInt(endTimestamp));
+                console.log(availability.current());
+                await res.json(availability.current().toObject());
+            }
+        }
     }catch (e) {
         console.error(e);
         res.status(500).send('Something went wrong!');

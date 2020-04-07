@@ -170,4 +170,22 @@ module.exports = class Availability {
              totalTimeScheduled: this.totalTimeScheduled
          }
      }
+     current() {
+         const now = new Date().getTime();
+         let nearestNextSlot = null;
+         for(let i=0; i<this.schedule.length; i++){
+             const timeSlot = this.schedule[i];
+             if(now >= timeSlot.start && now < timeSlot.end) {
+                 return timeSlot;
+             }else if (timeSlot.start > now){
+                 if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
+                     nearestNextSlot = timeSlot;
+                 }
+             }
+
+         }
+         //It means it's in an assigned slot: The end time is either the start of the nearest next slot or the end of the last unassigned slot.
+         const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
+         return new TimeSlot(now, endTime, 'unassigned');
+     }
 };
