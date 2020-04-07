@@ -5,6 +5,22 @@ const router = express.Router();
 
 router.get('/current', async function (req, res) {
     try {
+
+    }catch (e) {
+        console.error(e);
+        res.status(500).send('Something went wrong!');
+    }
+});
+router.post('/current', function (req, res) {
+    try {
+        res.send('ok');
+    }catch (e) {
+        console.error(e);
+        res.status(500).send('Something went wrong!');
+    }
+});
+router.get('/remaining', async function (req, res) {
+    try {
         const {userId, startTimestamp, endTimestamp} = req.query;
         if(!userId || !parseInt(startTimestamp) || !parseInt(endTimestamp)){
             res.status(400).send('Bad request!');
@@ -17,11 +33,14 @@ router.get('/current', async function (req, res) {
         res.status(500).send('Something went wrong!');
     }
 });
-
-router.post('/current', function (req, res) {
-    res.send('ok');
+router.post('/remaining', async function (req, res) {
+    try {
+        res.send('ok');
+    }catch (e) {
+        console.error(e);
+        res.status(500).send('Something went wrong!');
+    }
 });
-
 router.get('/suggested', async function (req, res) {
     try {
         const {userId, startTimestamp, endTimestamp, minAvailableSlotInMinutes, minFocusSlotInMinutes} = req.query;
