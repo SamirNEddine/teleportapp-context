@@ -28,7 +28,8 @@ const getCalendarEvents = async function (userId, startTimestamp, endTimestamp) 
     });
 };
 
-const availabilityFromCalendar = async function (userId, startTime, endTime=Number.POSITIVE_INFINITY) {
+//8640000000000000 is the max timestamp value: http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
+const availabilityFromCalendar = async function (userId, startTime, endTime=8640000000000000) {
     const events = await getCalendarEvents(userId, startTime, endTime);
     const availability = new Availability(startTime, endTime);
     events.forEach(event => {

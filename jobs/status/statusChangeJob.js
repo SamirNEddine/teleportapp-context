@@ -1,3 +1,5 @@
+require('../../utils').config();
+require('dotenv').config();
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const UserIntegration = require('../../model/UserIntegration');
 const {updateUserStatus} = require('../../helpers/slack');

@@ -1,5 +1,6 @@
+require('../../utils').config();
+require('dotenv').config();
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
-const CalendarEvent = require('../../model/CalendarEvent');
 const {computeAvailabilityFromCalendarEvents} = require('../../availability');
 const {redisGetAsync, redisDelAsync, redisSetAsync} = require('../../utils/redis');
 const Queue = require('bull');
@@ -31,12 +32,8 @@ module.exports = async function (job, done) {
         await redisDelAsync(redisEntry);
     }
     const now = new Date();
-    const remainingEvents = await CalendarEvent.find({
-        userId,
-        endDateTime: {$gt:now}
-    });
     const jobs = [];
-    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = computeAvailabilityFromCalendarEvents(remainingEvents, now.getTime());
+    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await computeAvailabilityFromCalendarEvents(userId, now.getTime());
     await Promise.all( busyTimeSlots.concat(focusTimeSlots).concat(availableTimeSlots).map(async (timeSlot) => {
         const jobId = `job-${timeSlot.start}-${timeSlot.end}-${timeSlot.status}`;
         const delay = timeSlot.start - new Date().getTime();
