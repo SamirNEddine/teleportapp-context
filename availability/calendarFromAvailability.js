@@ -1,10 +1,7 @@
-const UserIntegration = require('../model/UserIntegration');
-const {bookCalendarEventsFromTimeSlots} = require('../helpers/google');
+const {bookCalendarFromAvailabilityForUser} = require('../jobs/google');
 
 const updateCalendarWithTimeSlots = async function(userId, timeSlots) {
-    const googleCalendarIntegration = await UserIntegration.findOne({userId, name:'google'});
-    if(!googleCalendarIntegration) throw new Error('Bad request!');
-    await bookCalendarEventsFromTimeSlots(googleCalendarIntegration, timeSlots);
+    bookCalendarFromAvailabilityForUser(userId, timeSlots);
 };
 
 /** Exports **/

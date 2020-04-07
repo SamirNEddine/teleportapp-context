@@ -169,7 +169,6 @@ const bookCalendarEventsFromTimeSlots = async function (userIntegration, timeSlo
             calendarId: 'primary',
             requestBody: calendarEvent
         });
-        // calendar.events.batchinsert()
     }));
 };
 
