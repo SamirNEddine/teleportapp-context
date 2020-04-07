@@ -118,12 +118,12 @@ const generateCalendarSummary = function(status) {
     switch (status) {
         case 'focus':
         {
-            summary = 'My brain is in full power - only emergencies';
+            summary = 'Productive work. Reach me only for emergencies. Powered by Teleport';
             break;
         }
         case 'available':
         {
-            summary = 'Ready to talk';
+            summary = 'Communication slot. Feel free to reach me. Powered by Teleport';
             break;
         }
     }
@@ -146,7 +146,7 @@ const calendarEventStatusCodeFromStatus = function (status) {
 
 const calendarEventForTimeSlot = function (timeSlot) {
     return {
-        id: `${uuidv4().replace(/-/g, '')}${TELEPORT_STATUS_TOKEN_IN_ID}${calendarEventForTimeSlot(timeSlot.status)}`,
+        id: `${uuidv4().replace(/-/g, '')}${TELEPORT_STATUS_TOKEN_IN_ID}${calendarEventStatusCodeFromStatus(timeSlot.status)}`,
         start: {
             dateTime: new Date(timeSlot.start).toISOString()
         },
@@ -165,7 +165,10 @@ const bookCalendarEventsFromTimeSlots = async function (userIntegration, timeSlo
     });
     await Promise.all( timeSlots.map(async (timeSlot) => {
         const calendarEvent = calendarEventForTimeSlot(timeSlot);
-        await calendar.events.insert(calendarEvent);
+        await calendar.events.insert({
+            calendarId: 'primary',
+            requestBody: calendarEvent
+        });
         // calendar.events.batchinsert()
     }));
 };
