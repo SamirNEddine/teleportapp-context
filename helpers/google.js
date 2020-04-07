@@ -1,5 +1,6 @@
 const {google} = require('googleapis');
 const CalendarEvent = require('../model/CalendarEvent');
+const uuidv4 = require('uuid').v4;
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -15,7 +16,6 @@ const oauth2Client = new google.auth.OAuth2(
 const getStatusForEvent = function (event) {
     if(event.id.includes(TELEPORT_STATUS_TOKEN_IN_ID)){
         const status = event.id.split(TELEPORT_STATUS_TOKEN_IN_ID)[1];
-        console.log("TESTING", event.id.split(TELEPORT_STATUS_TOKEN_IN_ID), status)
         switch (status) {
             case '1':
                 return 'focus';
@@ -116,11 +116,6 @@ const performCalendarSync = async function (userIntegration, timeFrameInHours=12
 const generateCalendarSummary = function(status) {
     let summary = null;
     switch (status) {
-        case 'busy':
-        {
-            summary = 'Busy - write me somewhere I can read later';
-            break;
-        }
         case 'focus':
         {
             summary = 'My brain is in full power - only emergencies';
@@ -134,9 +129,24 @@ const generateCalendarSummary = function(status) {
     }
     return summary;
 };
+const calendarEventStatusCodeFromStatus = function (status) {
+    let code = 0;
+    switch (status) {
+        case 'focus': {
+            code = 1;
+            break;
+        }
+        case 'available': {
+            code = 2;
+            break;
+        }
+    }
+    return code;
+};
+
 const calendarEventForTimeSlot = function (timeSlot) {
     return {
-        id: timeSlot.status,
+        id: `${uuidv4().replace(/-/g, '')}${TELEPORT_STATUS_TOKEN_IN_ID}${calendarEventForTimeSlot(timeSlot.status)}`,
         start: {
             dateTime: new Date(timeSlot.start).toISOString()
         },
