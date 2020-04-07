@@ -74,8 +74,7 @@ const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHou
     }
     return calendarUpdates.items;
 };
-
-module.exports.performCalendarSync = async function (userIntegration, timeFrameInHours=120) {
+const performCalendarSync = async function (userIntegration, timeFrameInHours=120) {
     const calendarUpdates = await getCalendarEventsUpdates(userIntegration, timeFrameInHours);
     const updates = [];
     for(let i=0; i<calendarUpdates.length; i++){
@@ -114,3 +113,11 @@ module.exports.performCalendarSync = async function (userIntegration, timeFrameI
         return {updates: false};
     }
 };
+const bookCalendarEventsFromTimeSlots = async function (userIntegration, timeSlots) {
+
+};
+
+
+/** Exports **/
+module.exports.performCalendarSync = performCalendarSync;
+module.exports.bookCalendarEventsFromTimeSlots = bookCalendarEventsFromTimeSlots;

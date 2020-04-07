@@ -1,5 +1,5 @@
 const express = require ('express');
-const {computeAvailabilityFromCalendarEvents} = require('../../availability');
+const {computeAvailabilityFromCalendarEvents, updateCalendarWithTimeSlots} = require('../../availability');
 
 const router = express.Router();
 
@@ -47,7 +47,13 @@ router.get('/remaining', async function (req, res) {
 });
 router.post('/remaining', async function (req, res) {
     try {
-        res.send('ok');
+        const {userId, timeSlots} = req.query;
+        if(!userId || !timeSlots){
+            res.status(400).send('Bad request!');
+        }else{
+            await updateCalendarWithTimeSlots(userId, timeSlots);
+            res.send('ok');
+        }
     }catch (e) {
         console.error(e);
         res.status(500).send('Something went wrong!');
