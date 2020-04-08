@@ -182,7 +182,6 @@ module.exports = class Availability {
                      nearestNextSlot = timeSlot;
                  }
              }
-
          }
          //It means it's in an assigned slot: The end time is either the start of the nearest next slot or the end of the last unassigned slot.
          const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
