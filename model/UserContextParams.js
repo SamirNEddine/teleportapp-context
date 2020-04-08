@@ -29,6 +29,10 @@ const UserContextParams = Schema({
     minFocusSlotInMinutes: {
         type: Number,
         required: true
+    },
+    IANATimezone: {
+        type: String,
+        required: true
     }
 }, {timestamp: true});
 
