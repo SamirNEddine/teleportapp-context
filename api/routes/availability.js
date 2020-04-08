@@ -4,7 +4,7 @@ const UserContextParams = require('../../model/UserContextParams');
 const {getTimestampFromLocalTodayTime} =  require('../../utils/timezone');
 
 const router = express.Router();
-// getTimestampFromLocalTodayTime(user.preferences.endWorkTime, user.IANATimezone);
+
 router.get('/current', async function (req, res) {
     try {
         const {userId} = req.query;
