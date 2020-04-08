@@ -5,7 +5,9 @@ const Schema = mongoose.Schema;
 const UserContextParamsSchema = Schema({
     userId: {
         type: Schema.Types.ObjectID,
-        required: true
+        required: true,
+        unique: true,
+        dropDups: true
     },
     startWorkTime: {
         type: String,
