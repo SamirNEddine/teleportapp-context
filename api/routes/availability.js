@@ -1,20 +1,27 @@
 const express = require ('express');
 const {computeAvailabilityFromCalendarEvents, updateCalendarWithTimeSlots, computeAvailabilitySuggestionsFromUnassignedSlots} = require('../../availability');
+const UserContextParams = require('../../model/UserContextParams');
+const {getTimestampFromLocalTodayTime} =  require('../../utils/timezone');
 
 const router = express.Router();
-
+// getTimestampFromLocalTodayTime(user.preferences.endWorkTime, user.IANATimezone);
 router.get('/current', async function (req, res) {
     try {
-        const {userId, startTimestamp, endTimestamp} = req.query;
-        if(!userId || !parseInt(startTimestamp) || !parseInt(endTimestamp)){
+        const {userId} = req.query;
+        if(!userId){
             res.status(400).send('Bad request!');
         }else{
-            const now = new Date().getTime();
-            if(now < parseInt(startTimestamp)) {
-                await res.json({start:now, end: parseInt(startTimestamp), status: 'unassigned'});
-            }else {
-                const availability = await computeAvailabilityFromCalendarEvents(userId, parseInt(startTimestamp), parseInt(endTimestamp));
-                await res.json(availability.current().toObject());
+            const userContextParams = await UserContextParams.findOne({userId});
+            if(!userContextParams){
+                res.status(400).send('Bad request!');
+            }else{
+                const now = new Date().getTime();
+                if(now < userContextParams.todayStartWorkTimestamp) {
+                    await res.json({start:now, end: userContextParams.todayStartWorkTimestamp, status: 'unassigned'});
+                }else {
+                    const availability = await computeAvailabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
+                    await res.json(availability.current().toObject());
+                }
             }
         }
     }catch (e) {
@@ -32,11 +39,12 @@ router.post('/current', function (req, res) {
 });
 router.get('/remaining', async function (req, res) {
     try {
-        const {userId, startTimestamp, endTimestamp} = req.query;
-        if(!userId || !parseInt(startTimestamp) || !parseInt(endTimestamp)){
+        const {userId} = req.query;
+        if(!userId){
             res.status(400).send('Bad request!');
         }else{
-            const availability = await computeAvailabilityFromCalendarEvents(userId, parseInt(startTimestamp), parseInt(endTimestamp));
+            const userContextParams = await UserContextParams.findOne({userId});
+            const availability = await computeAvailabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
             await res.json(availability.toObject());
         }
     }catch (e) {
@@ -60,12 +68,13 @@ router.post('/remaining', async function (req, res) {
 });
 router.get('/suggested', async function (req, res) {
     try {
-        const {userId, startTimestamp, endTimestamp, minAvailableSlotInMinutes, minFocusSlotInMinutes} = req.query;
-        if(!userId || !parseInt(startTimestamp) || !parseInt(endTimestamp) || !parseInt(minAvailableSlotInMinutes) || !parseInt(minFocusSlotInMinutes)){
+        const {userId} = req.query;
+        if(!userId){
             res.status(400).send('Bad request!');
         }else{
-            const availabilityFromCalendar = await computeAvailabilityFromCalendarEvents(userId, parseInt(startTimestamp), parseInt(endTimestamp));
-            const suggestedAvailability = await computeAvailabilitySuggestionsFromUnassignedSlots(availabilityFromCalendar, parseInt(minAvailableSlotInMinutes), parseInt(minFocusSlotInMinutes));
+            const userContextParams = await UserContextParams.findOne({userId});
+            const availabilityFromCalendar = await computeAvailabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
+            const suggestedAvailability = await computeAvailabilitySuggestionsFromUnassignedSlots(availabilityFromCalendar, userContextParams.minAvailableSlotInMinutes, userContextParams.minFocusSlotInMinutes);
             await res.json(suggestedAvailability.toObject());
         }
     }catch (e) {

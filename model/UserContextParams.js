@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const {getTimestampFromLocalTodayTime} = require('../utils/timezone');
 const Schema = mongoose.Schema;
 
-const UserContextParams = Schema({
+const UserContextParamsSchema = Schema({
     userId: {
         type: Schema.Types.ObjectID,
         required: true
@@ -36,4 +37,19 @@ const UserContextParams = Schema({
     }
 }, {timestamp: true});
 
-module.exports = new mongoose.model('user context params', UserContextParams);
+/** UserContextParamsScheme virtual properties **/
+UserContextParamsSchema.virtual('todayStartWorkTimestamp').get(function() {
+    return getTimestampFromLocalTodayTime(this.startWorkTime, this.IANATimezone);
+});
+UserContextParamsSchema.virtual('todayEndWorkTimestamp').get(function() {
+    return getTimestampFromLocalTodayTime(this.endWorkTime, this.IANATimezone);
+});
+UserContextParamsSchema.virtual('todayLunchTimestamp').get(function() {
+    return getTimestampFromLocalTodayTime(this.lunchTime, this.IANATimezone);
+});
+UserContextParamsSchema.virtual('todayDailySetupTimestamp').get(function() {
+    return getTimestampFromLocalTodayTime(this.dailySetupTime, this.IANATimezone);
+});
+
+/** Export **/
+module.exports = new mongoose.model('user context params', UserContextParamsSchema);
