@@ -1,7 +1,6 @@
 const express = require ('express');
 const {computeAvailabilityFromCalendarEvents, updateCalendarWithTimeSlots, computeAvailabilitySuggestionsFromUnassignedSlots} = require('../../availability');
 const UserContextParams = require('../../model/UserContextParams');
-const {getTimestampFromLocalTodayTime} =  require('../../utils/timezone');
 
 const router = express.Router();
 
