@@ -28,13 +28,18 @@ router.get('/current', async function (req, res) {
         res.status(500).send('Something went wrong!');
     }
 });
-router.post('/current', function (req, res) {
+router.post('/current', async function (req, res) {
     try {
         const {userId, newAvailability} = req.body;
         if(!userId || !newAvailability){
             res.status(400).send('Bad request!');
         }else{
-
+            const userContextParams = await UserContextParams.findOne({userId});
+            if(!userContextParams){
+                res.status(400).send('Bad request!');
+            }else{
+                await res.json(await setCurrentAvailability(userContextParams, newAvailability));
+            }
         }
     }catch (e) {
         console.error(e);
