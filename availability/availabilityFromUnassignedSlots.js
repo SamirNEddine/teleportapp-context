@@ -12,7 +12,7 @@ const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFo
     if(focusTimeSlot.duration /  (minFocus * 60 * 1000) > 2) {
         if (focusTimeSlot.duration /  (minFocus * 60 * 1000) < 6){
             //One available in the middle
-            const availableSlotStart = focusTimeSlot.start + Math.floor((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2)*minFocus*60*1000 + ( (focusTimeSlot.duration /  (minFocus * 60 * 1000))%1 >=0.5 ? minFocus*60*1000 : 0);
+            const availableSlotStart = focusTimeSlot.start + Math.floor((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2)*minFocus*60*1000 + ( ((focusTimeSlot.duration /  (minFocus * 60 * 1000)) / 2)%1 >=0.5 ? minFocus*60*1000 - minAvailable*60*1000 : 0 );
             const availableSlot = new TimeSlot(availableSlotStart, availableSlotStart+minAvailable*60*1000, 'available');
             result.push(new TimeSlot(focusTimeSlot.start, availableSlot.start, 'focus'));
             result.push(availableSlot);
