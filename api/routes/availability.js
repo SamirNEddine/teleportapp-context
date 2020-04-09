@@ -1,6 +1,12 @@
 const express = require ('express');
-const {computeAvailabilityFromCalendarEvents, updateCalendarWithTimeSlots, computeAvailabilitySuggestionsFromUnassignedSlots} = require('../../availability');
 const UserContextParams = require('../../model/UserContextParams');
+const {
+    computeAvailabilityFromCalendarEvents,
+    updateCalendarWithTimeSlots,
+    computeAvailabilitySuggestionsFromUnassignedSlots,
+    getCurrentAvailability,
+    setCurrentAvailability
+} = require('../../availability');
 
 const router = express.Router();
 
@@ -14,13 +20,7 @@ router.get('/current', async function (req, res) {
             if(!userContextParams){
                 res.status(400).send('Bad request!');
             }else{
-                const now = new Date().getTime();
-                if(now < userContextParams.todayStartWorkTimestamp) {
-                    await res.json({start:now, end: userContextParams.todayStartWorkTimestamp, status: 'unassigned'});
-                }else {
-                    const availability = await computeAvailabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
-                    await res.json(availability.current().toObject());
-                }
+                await res.json(await getCurrentAvailability(userContextParams));
             }
         }
     }catch (e) {
@@ -30,7 +30,12 @@ router.get('/current', async function (req, res) {
 });
 router.post('/current', function (req, res) {
     try {
-        res.send('ok');
+        const {userId, newAvailability} = req.body;
+        if(!userId || !newAvailability){
+            res.status(400).send('Bad request!');
+        }else{
+
+        }
     }catch (e) {
         console.error(e);
         res.status(500).send('Something went wrong!');
