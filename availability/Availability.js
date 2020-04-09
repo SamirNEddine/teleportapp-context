@@ -187,4 +187,17 @@ module.exports = class Availability {
          const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
          return new TimeSlot(now, endTime, 'unassigned');
      }
+     next() {
+         const now = new Date().getTime();
+         for(let i=0; i<this.schedule.length; i++){
+             const timeSlot = this.schedule[i];
+             if(now >= timeSlot.start && now < timeSlot.end) {
+                 if(i+1 < this.schedule.length){
+                     return this.schedule[i+1];
+                 }
+             }
+         }
+         //It means current is the last slot of the schedule
+         return null;
+     }
 };

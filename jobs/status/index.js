@@ -44,9 +44,14 @@ statusChangeQueue.on('completed', async function (job) {
 statusChangeQueue.on('failed', function(job, err){
     console.log(`${STATUS_CHANGE_JOB} :::: FAILED!`, err);
 });
+const performChangeStatusForUser = function(userId, timeSlot) {
+    console.log(`${STATUS_CHANGE_QUEUE_NAME} :::: ADDING CHANGE STATUS JOB FOR USER: ${userId}`);
+    statusChangeQueue.add(STATUS_CHANGE_JOB, {userId, timeSlot});
+};
 
 /** Exports **/
 module.exports.rescheduleStatusChangeForUser = rescheduleStatusChangeForUser;
+module.exports.performChangeStatusForUser = performChangeStatusForUser;
 module.exports.REDIS_PREFIX = REDIS_PREFIX;
 module.exports.STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME = STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME;
 module.exports.STATUS_CHANGE_QUEUE_NAME = STATUS_CHANGE_QUEUE_NAME;
