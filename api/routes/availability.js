@@ -46,7 +46,7 @@ router.post('/current', async function (req, res) {
         res.status(500).send('Something went wrong!');
     }
 });
-router.get('/remaining', async function (req, res) {
+router.get('/today', async function (req, res) {
     try {
         const {userId} = req.query;
         if(!userId){
@@ -61,7 +61,7 @@ router.get('/remaining', async function (req, res) {
         res.status(500).send('Something went wrong!');
     }
 });
-router.post('/remaining', async function (req, res) {
+router.post('/today', async function (req, res) {
     try {
         const {userId, timeSlots} = req.body;
         if(!userId || !timeSlots){
