@@ -1,9 +1,9 @@
 const express = require ('express');
 const UserContextParams = require('../../model/UserContextParams');
 const {
-    computeAvailabilityFromCalendarEvents,
-    updateCalendarWithTimeSlots,
-    computeAvailabilitySuggestionsFromUnassignedSlots,
+    getAvailabilityForToday,
+    scheduleAvailabilityForToday,
+    getSuggestedAvailabilityForToday,
     getCurrentAvailability,
     setCurrentAvailability
 } = require('../../availability');
@@ -46,14 +46,13 @@ router.post('/current', async function (req, res) {
         res.status(500).send('Something went wrong!');
     }
 });
-router.get('/remaining', async function (req, res) {
+router.get('/today', async function (req, res) {
     try {
         const {userId} = req.query;
         if(!userId){
             res.status(400).send('Bad request!');
         }else{
-            const userContextParams = await UserContextParams.findOne({userId});
-            const availability = await computeAvailabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
+            const availability = await getAvailabilityForToday(userId);
             await res.json(availability.toObject());
         }
     }catch (e) {
@@ -61,14 +60,13 @@ router.get('/remaining', async function (req, res) {
         res.status(500).send('Something went wrong!');
     }
 });
-router.post('/remaining', async function (req, res) {
+router.post('/today', async function (req, res) {
     try {
         const {userId, timeSlots} = req.body;
         if(!userId || !timeSlots){
             res.status(400).send('Bad request!');
         }else{
-            await updateCalendarWithTimeSlots(userId, timeSlots);
-            res.send('ok');
+            res.send (await scheduleAvailabilityForToday(userId, timeSlots));
         }
     }catch (e) {
         console.error(e);
@@ -81,9 +79,7 @@ router.get('/suggested', async function (req, res) {
         if(!userId){
             res.status(400).send('Bad request!');
         }else{
-            const userContextParams = await UserContextParams.findOne({userId});
-            const availabilityFromCalendar = await computeAvailabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
-            const suggestedAvailability = await computeAvailabilitySuggestionsFromUnassignedSlots(availabilityFromCalendar, userContextParams.minAvailableSlotInMinutes, userContextParams.minFocusSlotInMinutes);
+            const suggestedAvailability = await getSuggestedAvailabilityForToday(userId);
             await res.json(suggestedAvailability.toObject());
         }
     }catch (e) {

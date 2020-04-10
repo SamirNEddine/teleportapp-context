@@ -1,7 +1,7 @@
 require('../../utils').config();
 require('dotenv').config();
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
-const {computeAvailabilityFromCalendarEvents} = require('../../availability');
+const {availabilityFromCalendarEvents} = require('../../availability');
 const {redisGetAsync, redisDelAsync, redisSetAsync} = require('../../utils/redis');
 const Queue = require('bull');
 const {REDIS_PREFIX, STATUS_CHANGE_QUEUE_NAME, STATUS_CHANGE_SCHEDULER_JOB, STATUS_CHANGE_JOB} = require('./index');
@@ -33,7 +33,7 @@ module.exports = async function (job, done) {
     }
     const now = new Date();
     const jobs = [];
-    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await computeAvailabilityFromCalendarEvents(userId, now.getTime());
+    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await availabilityFromCalendarEvents(userId, now.getTime());
     await Promise.all( busyTimeSlots.concat(focusTimeSlots).concat(availableTimeSlots).map(async (timeSlot) => {
         const jobId = `job-${timeSlot.start}-${timeSlot.end}-${timeSlot.status}`;
         const delay = timeSlot.start - new Date().getTime();

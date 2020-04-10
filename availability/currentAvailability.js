@@ -1,4 +1,4 @@
-const {computeAvailabilityFromCalendarEvents} = require('./index');
+const {getAvailabilityForToday} = require('./index');
 const {performChangeStatusForUser} = require('../jobs/status');
 
 const getCurrentAvailability = async function (userContextParams) {
@@ -6,12 +6,12 @@ const getCurrentAvailability = async function (userContextParams) {
     if(now < userContextParams.todayStartWorkTimestamp) {
         return {start:now, end: userContextParams.todayStartWorkTimestamp, status: 'unassigned'};
     }else {
-        const availability = await computeAvailabilityFromCalendarEvents(userContextParams.userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
+        const availability = await getAvailabilityForToday(userContextParams.userId);
         return availability.current().toObject();
     }
 };
 const setCurrentAvailability = async function (userContextParams, newAvailability) {
-    const availability = await computeAvailabilityFromCalendarEvents(userContextParams.userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
+    const availability = await getAvailabilityForToday(userContextParams.userId);
     const current = availability.current();
     if(current.status !== newAvailability){
         const next = availability.next();

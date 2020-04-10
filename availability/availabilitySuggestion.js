@@ -37,7 +37,7 @@ const insertAvailableSlotsInFocusSlotIfRelevant = function (focusTimeSlot, minFo
     return result;
 };
 //minAvailable and minFocus are in minutes
-const computeAvailabilitySuggestionsFromUnassignedSlots = function (availability, minAvailable, minFocus) {
+const computeAvailabilitySuggestionFromUnassignedSlots = function (availability, minAvailable, minFocus) {
     const unassignedTimeSlots = [...availability.unassignedTimeSlots];
     unassignedTimeSlots.forEach(timeSlot => {
         let focusTimeSlotCandidate = null;
@@ -64,4 +64,4 @@ const computeAvailabilitySuggestionsFromUnassignedSlots = function (availability
     return availability;
 };
 
-module.exports = computeAvailabilitySuggestionsFromUnassignedSlots;
+module.exports.computeAvailabilitySuggestionFromUnassignedSlots = computeAvailabilitySuggestionFromUnassignedSlots;

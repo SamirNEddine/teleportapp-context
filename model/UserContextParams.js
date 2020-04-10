@@ -36,6 +36,10 @@ const UserContextParamsSchema = Schema({
     IANATimezone: {
         type: String,
         required: true
+    },
+    //Date without time
+    lastScheduledAvailabilityDate: {
+        type: String
     }
 }, {timestamp: true});
 
