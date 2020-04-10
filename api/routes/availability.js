@@ -66,8 +66,7 @@ router.post('/today', async function (req, res) {
         if(!userId || !timeSlots){
             res.status(400).send('Bad request!');
         }else{
-            await scheduleAvailabilityForToday(userId, timeSlots);
-            res.send('ok');
+            res.send (await scheduleAvailabilityForToday(userId, timeSlots));
         }
     }catch (e) {
         console.error(e);

@@ -1,3 +1,4 @@
+const {getLocalTodayDate} = require('../utils/timezone');
 const UserContextParams = require('../model/UserContextParams');
 const {availabilityFromCalendarEvents} = require('./availabilityFromCalendar');
 const {updateCalendarWithTimeSlots} = require('./calendarFromAvailability');
@@ -15,7 +16,16 @@ const getAvailabilityForToday = async function (userId) {
 };
 
 const scheduleAvailabilityForToday = async function (userId, timeSlots) {
-    await updateCalendarWithTimeSlots(userId, timeSlots);
+    const userContextParams = await UserContextParams.findOne({userId});
+    const today = getLocalTodayDate(userContextParams.IANATimezone);
+    if(today !== userContextParams.lastScheduledAvailabilityDate){
+        await updateCalendarWithTimeSlots(userId, timeSlots);
+        userContextParams.lastScheduledAvailabilityDate = today;
+        await userContextParams.save();
+        return 'ok';
+    }else{
+        return 'Already done!';
+    }
 };
 
 module.exports.getSuggestedAvailabilityForToday = getSuggestedAvailabilityForToday;
