@@ -1,5 +1,7 @@
 const {google} = require('googleapis');
+const {getTimestampFromLocalTodayTime} = require('../utils/timezone');
 const CalendarEvent = require('../model/CalendarEvent');
+const UserContextParams = require('../model/UserContextParams');
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const syncMinTimeFrameInHours = 120;
@@ -14,6 +16,7 @@ const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
     console.debug("Check for calendar updates with syncToken");
     const response = await calendar.events.list({
         calendarId: 'primary',
+        showDeleted: true,
         syncToken
     });
     return response.data;
@@ -22,8 +25,9 @@ const getCalendarEventsUpdatesWithISODates = async function(calendar, timeMin, t
     console.debug("Check for calendar updates with time frame");
     const response = await calendar.events.list({
         calendarId: 'primary',
+        showDeleted: true,
         timeMax,
-        timeMin
+        timeMin,
     });
     return response.data;
 };
@@ -59,9 +63,21 @@ const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHou
 };
 const performCalendarSync = async function (userIntegration, timeFrameInHours=120) {
     const calendarUpdates = await getCalendarEventsUpdates(userIntegration, timeFrameInHours);
+    const userContextParams = await UserContextParams.findOne({userId: userIntegration.userId});
+    let todayUpdates = false;
     const updates = [];
     for(let i=0; i<calendarUpdates.length; i++){
         const update = calendarUpdates[i];
+        if(!todayUpdates){
+            const updateStartTimeStamp = new Date(update.start.dateTime);
+            const updateEndTimeStamp = new Date(update.end.dateTime);
+            if(
+                (updateStartTimeStamp >= userContextParams.todayStartWorkTimestamp && updateStartTimeStamp < userContextParams.todayEndWorkTimestamp) ||
+                (updateEndTimeStamp >= userContextParams.todayStartWorkTimestamp && updateEndTimeStamp < userContextParams.todayEndWorkTimestamp)
+            ) {
+                todayUpdates = true;
+            }
+        }
         if(update.status === 'cancelled'){
             updates.push({
                 deleteOne: {
@@ -90,7 +106,7 @@ const performCalendarSync = async function (userIntegration, timeFrameInHours=12
     if(updates.length){
         console.log(calendarUpdates);
         await CalendarEvent.bulkWrite(updates);
-        return {updates: true};
+        return {updates: true, todayUpdates};
     }else{
         console.log('No updates!');
         return {updates: false};

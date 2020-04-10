@@ -21,7 +21,7 @@ module.exports = async function (job, done) {
     const {userId} = job.data;
     const now = new Date().getTime();
     const jobs = [];
-    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await getAvailabilityForToday(userId, now.getTime());
+    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await getAvailabilityForToday(userId, now);
     await Promise.all( busyTimeSlots.concat(focusTimeSlots).concat(availableTimeSlots).map(async (timeSlot) => {
         //Only remaining events for the day.
         if(now < timeSlot.end) {

@@ -24,7 +24,7 @@ const scheduleAvailabilityForToday = async function (userId, timeSlots) {
         await userContextParams.save();
         return 'ok';
     }else{
-        return 'Already done!';
+        return 'Already done for today!';
     }
 };
 

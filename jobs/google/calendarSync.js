@@ -20,8 +20,8 @@ module.exports = async function (job, done) {
     const users = userId ? [await UserIntegration.findOne({name:'google', userId})] : await UserIntegration.find({name:'google'});
 
     await Promise.all( users.map(async (u) => {
-        const {updates} = await performCalendarSync(u);
-        if(updates){
+        const {todayUpdates} = await performCalendarSync(u);
+        if(todayUpdates){
             console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: GOT UPDATES FOR TODAY: RESCHEDULE STATUS CHANGE JOBS`);
             await rescheduleRemainingTodayStatusChangeJobsForUser(u.userId);
         }
