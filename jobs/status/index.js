@@ -1,5 +1,5 @@
 const Queue = require('bull');
-const {redisGetAsync, redisSetAsync} = require('../../utils/redis');
+const {redisGetAsync, redisSetAsync, redisDelAsync} = require('../../utils/redis');
 
 const REDIS_PREFIX = 'STATUS_SCHEDULE_JOBS';
 const STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME = 'Status Change Scheduler Queue';
@@ -28,6 +28,19 @@ const jobsSchedulerQueue = new Queue(STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME, `r
 const scheduleTodayStatusChangeForUser = function (userId) {
     jobsSchedulerQueue.add(STATUS_CHANGE_SCHEDULER_JOB, {userId});
 };
+const rescheduleRemainingTodayStatusChangeJobsForUser = async function (userId) {
+    //Clean existing jobs if they exists
+    const redisEntry = `${REDIS_PREFIX}_${userId}`;
+    const scheduledJobs = JSON.parse(await redisGetAsync(redisEntry));
+    if(scheduledJobs && scheduledJobs.length){
+        await Promise.all(scheduledJobs.map(async (jobId) => {
+            const job = await statusChangeQueue.getJobFromId(jobId);
+            await job.remove();
+        }));
+        await redisDelAsync(redisEntry);
+    }
+    scheduleTodayStatusChangeForUser(userId);
+};
 jobsSchedulerQueue.process(STATUS_CHANGE_SCHEDULER_JOB, 10,`${__dirname}/statusChangeScheduler.js`);
 jobsSchedulerQueue.on('failed', function(job, err){
     console.log(`${STATUS_CHANGE_SCHEDULER_JOB} :::: FAILED!`, err);
@@ -51,6 +64,7 @@ const performChangeStatusForUser = function(userId, timeSlot) {
 
 /** Exports **/
 module.exports.scheduleTodayStatusChangeForUser = scheduleTodayStatusChangeForUser;
+module.exports.rescheduleRemainingTodayStatusChangeJobsForUser = rescheduleRemainingTodayStatusChangeJobsForUser;
 module.exports.performChangeStatusForUser = performChangeStatusForUser;
 module.exports.REDIS_PREFIX = REDIS_PREFIX;
 module.exports.STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME = STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME;

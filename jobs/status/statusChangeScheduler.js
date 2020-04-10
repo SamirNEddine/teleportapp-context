@@ -19,18 +19,6 @@ module.exports = async function (job, done) {
 
     await connectToDb();
     const {userId} = job.data;
-    const redisEntry = `${REDIS_PREFIX}_${userId}`;
-    //Clean existing jobs if they exists
-    const scheduledJobs = JSON.parse(await redisGetAsync(redisEntry));
-    if(scheduledJobs && scheduledJobs.length){
-        console.log(`${STATUS_CHANGE_SCHEDULER_JOB} :::: CLEANING EXISTING SCHEDULED JOBS`);
-        await Promise.all(scheduledJobs.map(async (jobId) => {
-            const job = await statusChangeQueue.getJobFromId(jobId);
-            console.log(`${STATUS_CHANGE_SCHEDULER_JOB} :::: REMOVING JOB:`, jobId);
-            await job.remove();
-        }));
-        await redisDelAsync(redisEntry);
-    }
     const now = new Date().getTime();
     const jobs = [];
     const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await getAvailabilityForToday(userId, now.getTime());
@@ -44,6 +32,7 @@ module.exports = async function (job, done) {
             jobs.push(jobId);
         }
     }));
+    const redisEntry = `${REDIS_PREFIX}_${userId}`;
     redisSetAsync(redisEntry, JSON.stringify(jobs));
     await disconnectFromDb();
 
