@@ -15,4 +15,4 @@ const updateCalendarWithTimeSlots = async function(userId, timeSlots) {
 };
 
 /** Exports **/
-module.exports = updateCalendarWithTimeSlots;
+module.exports.updateCalendarWithTimeSlots = updateCalendarWithTimeSlots;

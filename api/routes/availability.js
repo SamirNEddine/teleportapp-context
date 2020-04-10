@@ -2,8 +2,8 @@ const express = require ('express');
 const UserContextParams = require('../../model/UserContextParams');
 const {
     getAvailabilityForToday,
-    updateCalendarWithTimeSlots,
-    computeAvailabilitySuggestionsFromUnassignedSlots,
+    scheduleAvailabilityForToday,
+    getSuggestedAvailabilityForToday,
     getCurrentAvailability,
     setCurrentAvailability
 } = require('../../availability');
@@ -66,7 +66,7 @@ router.post('/today', async function (req, res) {
         if(!userId || !timeSlots){
             res.status(400).send('Bad request!');
         }else{
-            await updateCalendarWithTimeSlots(userId, timeSlots);
+            await scheduleAvailabilityForToday(userId, timeSlots);
             res.send('ok');
         }
     }catch (e) {
@@ -80,9 +80,7 @@ router.get('/suggested', async function (req, res) {
         if(!userId){
             res.status(400).send('Bad request!');
         }else{
-            const userContextParams = await UserContextParams.findOne({userId});
-            const availabilityFromCalendar = await getAvailabilityForToday(userId);
-            const suggestedAvailability = await computeAvailabilitySuggestionsFromUnassignedSlots(availabilityFromCalendar, userContextParams.minAvailableSlotInMinutes, userContextParams.minFocusSlotInMinutes);
+            const suggestedAvailability = await getSuggestedAvailabilityForToday(userId);
             await res.json(suggestedAvailability.toObject());
         }
     }catch (e) {
