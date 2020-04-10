@@ -4,6 +4,8 @@ const TimeSlot = require('./TimeSlot');
 const ROUND_FACTOR = 15;//in minutes
 
 module.exports = class Availability {
+    startTime;
+    endTime;
     busyTimeSlots = [];
     focusTimeSlots = [];
     availableTimeSlots = [];
@@ -18,6 +20,8 @@ module.exports = class Availability {
         const initTimeSlot = new TimeSlot(startTime, endTime, 'unassigned');
         this.unassignedTimeSlots = [initTimeSlot];
         this.totalTimeUnassigned = initTimeSlot.duration;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     /** Private methods **/
