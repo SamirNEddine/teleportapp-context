@@ -1,7 +1,7 @@
 require('../../utils').config();
 require('dotenv').config();
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
-const {availabilityFromCalendarEvents} = require('../../availability');
+const {getAvailabilityForToday} = require('../../availability');
 const {redisGetAsync, redisDelAsync, redisSetAsync} = require('../../utils/redis');
 const Queue = require('bull');
 const {REDIS_PREFIX, STATUS_CHANGE_QUEUE_NAME, STATUS_CHANGE_SCHEDULER_JOB, STATUS_CHANGE_JOB} = require('./index');
@@ -31,15 +31,18 @@ module.exports = async function (job, done) {
         }));
         await redisDelAsync(redisEntry);
     }
-    const now = new Date();
+    const now = new Date().getTime();
     const jobs = [];
-    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await availabilityFromCalendarEvents(userId, now.getTime());
+    const {busyTimeSlots, focusTimeSlots, availableTimeSlots} = await getAvailabilityForToday(userId, now.getTime());
     await Promise.all( busyTimeSlots.concat(focusTimeSlots).concat(availableTimeSlots).map(async (timeSlot) => {
-        const jobId = `job-${timeSlot.start}-${timeSlot.end}-${timeSlot.status}`;
-        const delay = timeSlot.start - new Date().getTime();
-        console.log(`${STATUS_CHANGE_SCHEDULER_JOB} :::: SCHEDULING JOB:`, jobId);
-        statusChangeQueue.add(STATUS_CHANGE_JOB, {userId, timeSlot}, {jobId, delay});
-        jobs.push(jobId);
+        //Only remaining events for the day.
+        if(now < timeSlot.end) {
+            const jobId = `job-${timeSlot.start}-${timeSlot.end}-${timeSlot.status}`;
+            const delay = now >= timeSlot.start ? timeSlot.start - now : 0;
+            console.log(`${STATUS_CHANGE_SCHEDULER_JOB} :::: SCHEDULING JOB:`, jobId);
+            statusChangeQueue.add(STATUS_CHANGE_JOB, {userId, timeSlot}, {jobId, delay});
+            jobs.push(jobId);
+        }
     }));
     redisSetAsync(redisEntry, JSON.stringify(jobs));
     await disconnectFromDb();

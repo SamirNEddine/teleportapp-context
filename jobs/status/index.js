@@ -25,7 +25,7 @@ const removeJobFromStatusChangeJobsCache = async function(userId, jobId) {
 
 /** Status Change Scheduler **/
 const jobsSchedulerQueue = new Queue(STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME, `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
-const rescheduleStatusChangeForUser = function (userId) {
+const scheduleTodayStatusChangeForUser = function (userId) {
     jobsSchedulerQueue.add(STATUS_CHANGE_SCHEDULER_JOB, {userId});
 };
 jobsSchedulerQueue.process(STATUS_CHANGE_SCHEDULER_JOB, 10,`${__dirname}/statusChangeScheduler.js`);
@@ -50,7 +50,7 @@ const performChangeStatusForUser = function(userId, timeSlot) {
 };
 
 /** Exports **/
-module.exports.rescheduleStatusChangeForUser = rescheduleStatusChangeForUser;
+module.exports.scheduleTodayStatusChangeForUser = scheduleTodayStatusChangeForUser;
 module.exports.performChangeStatusForUser = performChangeStatusForUser;
 module.exports.REDIS_PREFIX = REDIS_PREFIX;
 module.exports.STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME = STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME;

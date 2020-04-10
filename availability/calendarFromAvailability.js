@@ -1,5 +1,5 @@
 const CalendarEvent = require('../model/CalendarEvent');
-const {rescheduleStatusChangeForUser} = require('../jobs/status');
+const {scheduleTodayStatusChangeForUser} = require('../jobs/status');
 const {bookCalendarEvents} = require('../jobs/google');
 
 const updateCalendarWithTimeSlots = async function(userId, timeSlots) {
@@ -10,7 +10,7 @@ const updateCalendarWithTimeSlots = async function(userId, timeSlots) {
         await calendarEvent.save();
         calendarEvents.push(calendarEvent);
     }));
-    rescheduleStatusChangeForUser(userId);
+    scheduleTodayStatusChangeForUser(userId);
     bookCalendarEvents(userId, calendarEvents);
 };
 
