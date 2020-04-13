@@ -42,4 +42,7 @@ module.exports = class TimeSlot {
     valueOf(timeSlot) {
         return this._start;
     }
+    toJSON() {
+        return this.toObject();
+    }
 };
