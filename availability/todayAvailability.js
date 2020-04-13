@@ -7,7 +7,7 @@ const {availabilityFromCalendarEvents} = require('./availabilityFromCalendar');
 const {updateCalendarWithTimeSlots} = require('./calendarFromAvailability');
 const {computeAvailabilitySuggestionFromUnassignedSlots} = require('./availabilitySuggestion');
 // const {performCalendarSync} = require('../helpers/google');
-const {redisHmgetAsync, redisHmsetAsyncWithTTL, redisHmgetallAsync} = require('../utils/redis');
+const {redisHmsetAsyncWithTTL, redisHmgetallAsync, redisDelAsync} = require('../utils/redis');
 const {getTimestampFromLocalTodayTime} = require('../utils/timezone');
 
 const TODAY_SCHEDULE_CACHE_PREFIX = 'TODAY_SCHEDULE';
@@ -15,7 +15,6 @@ const TODAY_SCHEDULE_CACHE_PREFIX = 'TODAY_SCHEDULE';
 const _getCachedTodayAvailability = async function(userId){
     const cacheKey = `${TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
     const cache = await redisHmgetallAsync(cacheKey);
-    console.log(cache);
     if(cache){
         console.log('Returning cached availability');
         const {startTime, endTime, schedule} = await redisHmgetallAsync(cacheKey);
@@ -35,13 +34,11 @@ const _setCachedTodayAvailability = async function(userId, availability, IANATim
     const TTL = Math.ceil(( getTimestampFromLocalTodayTime('2359', IANATimezone) - now ) / 1000);
     await redisHmsetAsyncWithTTL(cacheKey, {startTime: availability.startTime, endTime: availability.endTime, schedule: JSON.stringify(availability.schedule)}, TTL);
 };
-
 const getSuggestedAvailabilityForToday = async function (userId) {
     const userContextParams = await UserContextParams.findOne({userId});
     const availabilityFromCalendar = await getAvailabilityForToday(userId);
     return await computeAvailabilitySuggestionFromUnassignedSlots(availabilityFromCalendar, userContextParams.minAvailableSlotInMinutes, userContextParams.minFocusSlotInMinutes);
 };
-
 const getAvailabilityForToday = async function (userId) {
     //Start by doing a sync
     // const googleCalendarIntegration = await UserIntegration.findOne({userId, name:'google'});
@@ -55,7 +52,6 @@ const getAvailabilityForToday = async function (userId) {
     }
     return todayAvailability;
 };
-
 const scheduleAvailabilityForToday = async function (userId, timeSlots) {
     const userContextParams = await UserContextParams.findOne({userId});
     const today = getLocalTodayDate(userContextParams.IANATimezone);
@@ -68,7 +64,14 @@ const scheduleAvailabilityForToday = async function (userId, timeSlots) {
         return 'Already done for today!';
     }
 };
+const invalidatedCachedTodayAvailability = async function(userId){
+    console.log('Invalidating today availability cache for user', userId);
+    const cacheKey = `${TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
+    await redisDelAsync(cacheKey);
+};
 
+/** Exports **/
 module.exports.getSuggestedAvailabilityForToday = getSuggestedAvailabilityForToday;
 module.exports.getAvailabilityForToday = getAvailabilityForToday;
 module.exports.scheduleAvailabilityForToday = scheduleAvailabilityForToday;
+module.exports.invalidatedCachedTodayAvailability = invalidatedCachedTodayAvailability;
