@@ -204,9 +204,4 @@ module.exports = class Availability {
          //It means current is the last slot of the schedule
          return null;
      }
-
-    /** static methods **/
-    static fromCachedSchedule(cachedValue) {
-
-    }
 };
