@@ -1,4 +1,4 @@
-const {getAvailabilityForToday} = require('./index');
+const {getAvailabilityForToday} = require('./todayAvailability');
 const {performChangeStatusForUser} = require('../jobs/status');
 
 const getCurrentAvailability = async function (userContextParams) {

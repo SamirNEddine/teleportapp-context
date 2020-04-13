@@ -1,5 +1,5 @@
 const {google} = require('googleapis');
-const {getTimestampFromLocalTodayTime} = require('../utils/timezone');
+const {invalidatedCachedTodayAvailability} = require('../availability/todayAvailability');
 const CalendarEvent = require('../model/CalendarEvent');
 const UserContextParams = require('../model/UserContextParams');
 const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -104,8 +104,9 @@ const performCalendarSync = async function (userIntegration, timeFrameInHours=12
     }
 
     if(updates.length){
-        console.log(calendarUpdates);
+        console.log(calendarUpdates, 'today updates', todayUpdates);
         await CalendarEvent.bulkWrite(updates);
+        if(todayUpdates) await invalidatedCachedTodayAvailability(userIntegration.userId);
         return {updates: true, todayUpdates};
     }else{
         console.log('No updates!');
