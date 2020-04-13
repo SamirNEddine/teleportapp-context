@@ -26,7 +26,7 @@ module.exports = async function (job, done) {
         //Only remaining events for the day.
         if(now < timeSlot.end) {
             const jobId = `job-${timeSlot.start}-${timeSlot.end}-${timeSlot.status}`;
-            const delay = now >= timeSlot.start ? timeSlot.start - now : 0;
+            const delay =  timeSlot.start > now ? timeSlot.start - now : 0;
             console.log(`${STATUS_CHANGE_SCHEDULER_JOB} :::: SCHEDULING JOB:`, jobId);
             statusChangeQueue.add(STATUS_CHANGE_JOB, {userId, timeSlot}, {jobId, delay});
             jobs.push(jobId);
