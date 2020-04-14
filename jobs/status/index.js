@@ -14,9 +14,6 @@ const getCachedScheduledJobs = async function(userId) {
     const redisEntry = _getScheduledJobsRedisKey(userId);
     return JSON.parse(await redisGetAsync(redisEntry));
 };
-const hasJobsScheduledForToday = async function(userId) {
-    return (await getCachedScheduledJobs(userId) !== null);
-};
 const setScheduledJobsCache = async function(userId, scheduledJobs, endTime) {
     const redisEntry = _getScheduledJobsRedisKey(userId);
     if(scheduledJobs){
@@ -75,7 +72,6 @@ const scheduleStatusChangeJob = function(userId, timeSlot) {
 /** Exports **/
 module.exports.scheduleTodayStatusChangeForUserIfNeeded = scheduleTodayStatusChangeForUserIfNeeded;
 module.exports.performChangeStatusForUser = performChangeStatusForUser;
-module.exports.hasJobsScheduledForToday = hasJobsScheduledForToday;
 module.exports.getCachedScheduledJobs = getCachedScheduledJobs;
 module.exports.setScheduledJobsCache = setScheduledJobsCache;
 module.exports.scheduleStatusChangeJob = scheduleStatusChangeJob;
