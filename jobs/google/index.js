@@ -26,7 +26,7 @@ calendarSyncQueue.getRepeatableJobs().then( (jobs) => {
     }
     if(!existingSyncJob){
         console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: Scheduling Cron job`);
-        calendarSyncQueue.add(CALENDAR_SYNC_REPEATABLE_JOB, {}, {repeat:{every:5*60*1000}});
+        calendarSyncQueue.add(CALENDAR_SYNC_REPEATABLE_JOB, {}, {repeat:{every:process.env.CALENDAR_SYNC_CRON_JOB_TIME_IN_MINUTES*60*1000}});
     }
 });
 calendarSyncQueue.on('failed', function(job, err){
