@@ -1,10 +1,10 @@
 const Queue = require('bull');
 
-const CALENDAR_SYNC_QUEUE_NAME = 'Google Calendar Sync';
-const CALENDAR_SYNC_REPEATABLE_JOB = 'GoogleCalendarSyncCronJob';
-const CALENDAR_SYNC_ONETIME_JOB = 'GoogleCalendarSyncOneTimeJob';
-const CALENDAR_BOOK_QUEUE_NAME = 'Google Calendar Book';
-const CALENDAR_BOOK_JOB = 'GoogleCalendarBookEventsJob';
+const CALENDAR_SYNC_QUEUE_NAME = 'Calendar Sync Queue';
+const CALENDAR_SYNC_REPEATABLE_JOB = 'CalendarSyncCronJob';
+const CALENDAR_SYNC_ONETIME_JOB = 'CalendarSyncOneTimeJob';
+const CALENDAR_BOOK_QUEUE_NAME = 'Calendar Book Queue';
+const CALENDAR_BOOK_JOB = 'CalendarBookEventsJob';
 
 /** Queue setup **/
 const calendarSyncQueue = new Queue(CALENDAR_SYNC_QUEUE_NAME, `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
