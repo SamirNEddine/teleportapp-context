@@ -19,28 +19,34 @@ const hasJobsScheduledForToday = async function(userId) {
 };
 const setScheduledJobsCache = async function(userId, scheduledJobs, endTime) {
     const redisEntry = _getScheduledJobsRedisKey(userId);
-    const now = new Date().getTime();
-    const TTL = Math.ceil(( (endTime + 5*60*1000) - now ) / 1000);
-    await redisSetAsyncWithTTL(redisEntry,  JSON.stringify(scheduledJobs), TTL);
+    if(scheduledJobs){
+        const now = new Date().getTime();
+        const TTL = Math.ceil(( (endTime + 5*60*1000) - now ) / 1000);
+        await redisSetAsyncWithTTL(redisEntry,  JSON.stringify(scheduledJobs), TTL);
+    }else{
+        await redisDelAsync(redisEntry);
+    }
 };
 
 /** Status Change Scheduler **/
 const jobsSchedulerQueue = new Queue(STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME, `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
-const scheduleTodayStatusChangeForUser = function (userId) {
-    jobsSchedulerQueue.add(STATUS_CHANGE_SCHEDULER_JOB, {userId});
-};
-const rescheduleRemainingTodayStatusChangeJobsForUser = async function (userId) {
-    //Clean existing jobs if they exists
-    const redisEntry = _getScheduledJobsRedisKey(userId);
-    const scheduledJobs = JSON.parse(await redisGetAsync(redisEntry));
-    if(scheduledJobs && scheduledJobs.length){
-        await Promise.all(scheduledJobs.map(async (jobId) => {
-            const job = await statusChangeQueue.getJobFromId(jobId);
-            if(job) await job.remove();
-        }));
-        await redisDelAsync(redisEntry);
+const scheduleTodayStatusChangeForUserIfNeeded = async function (userId, forceReschedule=false) {
+    const scheduledJobs = await getCachedScheduledJobs(userId);
+    if(forceReschedule && scheduledJobs){
+        //Clean
+        console.log('Rescheduling status change jobs');
+        if(scheduledJobs && scheduledJobs.length){
+            await Promise.all(scheduledJobs.map(async (jobId) => {
+                const job = await statusChangeQueue.getJobFromId(jobId);
+                if(job) await job.remove();
+            }));
+            await setScheduledJobsCache(userId, null);
+        }
+        jobsSchedulerQueue.add(STATUS_CHANGE_SCHEDULER_JOB, {userId});
+    }else if (!scheduledJobs){
+        console.log('Scheduling status change jobs');
+        jobsSchedulerQueue.add(STATUS_CHANGE_SCHEDULER_JOB, {userId});
     }
-    scheduleTodayStatusChangeForUser(userId);
 };
 jobsSchedulerQueue.process(STATUS_CHANGE_SCHEDULER_JOB, 10,`${__dirname}/statusChangeScheduler.js`);
 jobsSchedulerQueue.on('failed', function(job, err){
@@ -67,8 +73,7 @@ const scheduleStatusChangeJob = function(userId, timeSlot) {
 };
 
 /** Exports **/
-module.exports.scheduleTodayStatusChangeForUser = scheduleTodayStatusChangeForUser;
-module.exports.rescheduleRemainingTodayStatusChangeJobsForUser = rescheduleRemainingTodayStatusChangeJobsForUser;
+module.exports.scheduleTodayStatusChangeForUserIfNeeded = scheduleTodayStatusChangeForUserIfNeeded;
 module.exports.performChangeStatusForUser = performChangeStatusForUser;
 module.exports.hasJobsScheduledForToday = hasJobsScheduledForToday;
 module.exports.getCachedScheduledJobs = getCachedScheduledJobs;
