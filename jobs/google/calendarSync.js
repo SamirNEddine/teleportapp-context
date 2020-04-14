@@ -3,7 +3,7 @@ require('dotenv').config();
 const UserIntegration = require('../../model/UserIntegration');
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const {performCalendarSync} = require('../../helpers/google');
-const {rescheduleRemainingTodayStatusChangeJobsForUser} = require('../status');
+const {scheduleTodayStatusChangeForUserIfNeeded} = require('../status');
 const {CALENDAR_SYNC_REPEATABLE_JOB} = require('./index');
 
 module.exports = async function (job, done) {
@@ -21,10 +21,7 @@ module.exports = async function (job, done) {
 
     await Promise.all( users.map(async (u) => {
         const {todayUpdates} = await performCalendarSync(u);
-        if(todayUpdates){
-            console.log(`${CALENDAR_SYNC_REPEATABLE_JOB} :::: GOT UPDATES FOR TODAY: RESCHEDULE STATUS CHANGE JOBS`);
-            await rescheduleRemainingTodayStatusChangeJobsForUser(u.userId);
-        }
+        await scheduleTodayStatusChangeForUserIfNeeded(u.userId, todayUpdates);
     }));
     await disconnectFromDb();
 
