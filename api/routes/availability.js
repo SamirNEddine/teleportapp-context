@@ -7,6 +7,7 @@ const {
     getCurrentAvailability,
     setCurrentAvailability
 } = require('../../availability');
+const {timeSlotsListFromObjectsList} = require('../../utils/timeSlot');
 
 const router = express.Router();
 
@@ -66,7 +67,7 @@ router.post('/today', async function (req, res) {
         if(!userId || !timeSlots){
             res.status(400).send('Bad request!');
         }else{
-            res.send (await scheduleAvailabilityForToday(userId, timeSlots));
+            res.send (await scheduleAvailabilityForToday(userId, timeSlotsListFromObjectsList(timeSlots)));
         }
     }catch (e) {
         console.error(e);
