@@ -3,13 +3,10 @@ const {invalidatedCachedTodayAvailability} = require('../availability/todayAvail
 const CalendarEvent = require('../model/CalendarEvent');
 const UserContextParams = require('../model/UserContextParams');
 const clientId = process.env.GOOGLE_CLIENT_ID;
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const syncMinTimeFrameInHours = 120;
 const syncTimeFrameMarginInHours = 48;
 const oauth2Client = new google.auth.OAuth2(
-    clientId,
-    clientSecret,
-    'https://tlprt.io/google/auth'
+    clientId
 );
 
 const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
