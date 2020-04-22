@@ -1,5 +1,7 @@
 require('./utils').config();
 require('dotenv').config();
+const fs = require('fs');
+if (fs.existsSync('./.env.secrets')) require('dotenv').config({path: './.env.secrets'});
 require('./jobs').config();
 const {connectToDb} = require('./utils/mongoose');
 const api = require('./api');
