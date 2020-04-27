@@ -171,7 +171,9 @@ module.exports = class Availability {
              totalTimeFocus: this.totalTimeFocus,
              totalTimeAvailable: this.totalTimeAvailable,
              totalTimeUnassigned: this.totalTimeUnassigned,
-             totalTimeScheduled: this.totalTimeScheduled
+             totalTimeScheduled: this.totalTimeScheduled,
+             startTime: this.startTime,
+             endTime: this.endTime
          }
      }
      current() {
