@@ -21,6 +21,11 @@ const UserContextParamsSchema = Schema({
         type: String,
         required: true
     },
+    lunchDurationInMinutes: {
+        type: Number,
+        required: true,
+        default: 60
+    },
     dailySetupTime: {
         type: String,
         required: true

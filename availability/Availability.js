@@ -5,6 +5,8 @@ const ROUND_FACTOR = 15;//in minutes
 
 module.exports = class Availability {
     startTime;
+    lunchTime;
+    lunchDurationInMinutes;
     endTime;
     busyTimeSlots = [];
     focusTimeSlots = [];
@@ -16,18 +18,20 @@ module.exports = class Availability {
     totalTimeAvailable = 0;
     totalTimeUnassigned = 0;
     totalTimeScheduled = 0;
-    constructor(startTime, endTime) {
+    constructor(startTime, lunchTime, lunchDurationInMinutes, endTime) {
         const initTimeSlot = new TimeSlot(startTime, endTime, 'unassigned');
         this.unassignedTimeSlots = [initTimeSlot];
         this.totalTimeUnassigned = initTimeSlot.duration;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.addTimeSlot(new TimeSlot(lunchTime, lunchTime+lunchDurationInMinutes*60*1000, 'lunch'));
     }
 
     /** Private methods **/
     _addTotalTimeForStatus(time, status) {
         switch (status) {
             case 'busy':
+            case 'lunch':
             {
                 this.totalTimeBusy += time;
                 break;
@@ -142,7 +146,9 @@ module.exports = class Availability {
      /** Public methods **/
      addTimeSlot(timeSlot) {
          this._updateUnassignedListWithAssignedTimeSlot(new TimeSlot(timeSlot.start, timeSlot.end, timeSlot.status));
-         if (timeSlot.status === 'busy') {
+         if (timeSlot.status === 'busy' || timeSlot.status === 'lunch') {
+             this.lunchTime = timeSlot.start;
+             this.lunchDurationInMinutes = timeSlot.duration/60/1000;
             this._insertTimeSlotIntoList(timeSlot, this.busyTimeSlots);
          } else {
             //Remove busy intersections

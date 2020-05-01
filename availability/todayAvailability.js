@@ -17,8 +17,8 @@ const _getCachedTodayAvailability = async function(userId){
     const cache = await redisHmgetallAsync(cacheKey);
     if(cache){
         console.log('Returning cached availability');
-        const {startTime, endTime, schedule} = await redisHmgetallAsync(cacheKey);
-        const availability = new Availability(parseInt(startTime), parseInt(endTime));
+        const {startTime, lunchTime, lunchDurationInMinutes, endTime, schedule} = await redisHmgetallAsync(cacheKey);
+        const availability = new Availability(parseInt(startTime), parseInt(lunchTime), parseInt(lunchDurationInMinutes), parseInt(endTime));
         const parsedSchedule = JSON.parse(schedule);
         parsedSchedule.forEach( timeSlot => {
             availability.addTimeSlot(new TimeSlot(timeSlot.start, timeSlot.end, timeSlot.status) );
@@ -32,7 +32,7 @@ const _setCachedTodayAvailability = async function(userId, availability, IANATim
     const cacheKey = `${TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
     const now = new Date().getTime();
     const TTL = Math.ceil(( getTimestampFromLocalTodayTime('2359', IANATimezone) - now ) / 1000);
-    await redisHmsetAsyncWithTTL(cacheKey, {startTime: availability.startTime, endTime: availability.endTime, schedule: JSON.stringify(availability.schedule)}, TTL);
+    await redisHmsetAsyncWithTTL(cacheKey, {startTime: availability.startTime, lunchTime: availability.lunchTime, lunchDurationInMinutes: availability.lunchDurationInMinutes, endTime: availability.endTime, schedule: JSON.stringify(availability.schedule)}, TTL);
 };
 const getSuggestedAvailabilityForToday = async function (userId) {
     const userContextParams = await UserContextParams.findOne({userId});
@@ -47,7 +47,7 @@ const getAvailabilityForToday = async function (userId) {
     let todayAvailability = await _getCachedTodayAvailability(userId);
     if(!todayAvailability){
         const userContextParams = await UserContextParams.findOne({userId});
-        todayAvailability = await availabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayEndWorkTimestamp);
+        todayAvailability = await availabilityFromCalendarEvents(userId, userContextParams.todayStartWorkTimestamp, userContextParams.todayLunchTimestamp, userContextParams.lunchDurationInMinutes, userContextParams.todayEndWorkTimestamp);
         await _setCachedTodayAvailability(userId, todayAvailability, userContextParams.IANATimezone);
     }
     return todayAvailability;
