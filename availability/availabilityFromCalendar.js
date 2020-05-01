@@ -23,9 +23,9 @@ const getCalendarEvents = async function (userId, startTimestamp, endTimestamp) 
 };
 
 //8640000000000000 is the max timestamp value: http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
-const availabilityFromCalendarEvents = async function (userId, startTime, endTime=8640000000000000) {
+const availabilityFromCalendarEvents = async function (userId, startTime, lunchTime, lunchDurationInMinutes, endTime=8640000000000000) {
     const events = await getCalendarEvents(userId, startTime, endTime);
-    const availability = new Availability(startTime, endTime);
+    const availability = new Availability(startTime, lunchTime, lunchDurationInMinutes, endTime);
     await Promise.all( events.map(async (event) => {
         availability.addTimeSlot(new TimeSlot(
             event.startDateTime.getTime() < startTime ? startTime : event.startDateTime.getTime(),
