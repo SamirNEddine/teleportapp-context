@@ -12,6 +12,7 @@ const {getTimestampFromLocalTodayTime} = require('../utils/timezone');
 
 const TODAY_SCHEDULE_CACHE_PREFIX = 'TODAY_SCHEDULE';
 
+/** Private **/
 const _getCachedTodayAvailability = async function(userId){
     const cacheKey = `${TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
     const cache = await redisHmgetallAsync(cacheKey);
@@ -34,6 +35,18 @@ const _setCachedTodayAvailability = async function(userId, availability, IANATim
     const TTL = Math.ceil(( getTimestampFromLocalTodayTime('2359', IANATimezone) - now ) / 1000);
     await redisHmsetAsyncWithTTL(cacheKey, {startTime: availability.startTime, lunchTime: availability.lunchTime, lunchDurationInMinutes: availability.lunchDurationInMinutes, endTime: availability.endTime, schedule: JSON.stringify(availability.schedule)}, TTL);
 };
+const _updateHasScheduledAvailabilityForToday = async function (userId) {
+    const userContextParams = await UserContextParams.findOne({userId});
+    userContextParams.lastScheduledAvailabilityDate = getLocalTodayDate(userContextParams.IANATimezone);
+    await userContextParams.save();
+};
+
+/** Public **/
+const hasScheduledAvailabilityForToday = async function(userId) {
+    const userContextParams = await UserContextParams.findOne({userId});
+    const today = getLocalTodayDate(userContextParams.IANATimezone);
+    return (today === userContextParams.lastScheduledAvailabilityDate);
+};
 const getSuggestedAvailabilityForToday = async function (userId) {
     const userContextParams = await UserContextParams.findOne({userId});
     const availabilityFromCalendar = await getAvailabilityForToday(userId);
@@ -53,12 +66,9 @@ const getAvailabilityForToday = async function (userId) {
     return todayAvailability;
 };
 const scheduleAvailabilityForToday = async function (userId, timeSlots) {
-    const userContextParams = await UserContextParams.findOne({userId});
-    const today = getLocalTodayDate(userContextParams.IANATimezone);
-    if(today !== userContextParams.lastScheduledAvailabilityDate){
+    if(! await hasScheduledAvailabilityForToday(userId)){
         await updateCalendarWithTimeSlots(userId, timeSlots);
-        userContextParams.lastScheduledAvailabilityDate = today;
-        await userContextParams.save();
+        await _updateHasScheduledAvailabilityForToday(userId);
         return 'ok';
     }else{
         return 'Already done for today!';
@@ -71,6 +81,7 @@ const invalidatedCachedTodayAvailability = async function(userId){
 };
 
 /** Exports **/
+module.exports.hasScheduledAvailabilityForToday = hasScheduledAvailabilityForToday;
 module.exports.getSuggestedAvailabilityForToday = getSuggestedAvailabilityForToday;
 module.exports.getAvailabilityForToday = getAvailabilityForToday;
 module.exports.scheduleAvailabilityForToday = scheduleAvailabilityForToday;

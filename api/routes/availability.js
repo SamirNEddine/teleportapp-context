@@ -5,7 +5,8 @@ const {
     scheduleAvailabilityForToday,
     getSuggestedAvailabilityForToday,
     getCurrentAvailability,
-    setCurrentAvailability
+    setCurrentAvailability,
+    hasScheduledAvailabilityForToday
 } = require('../../availability');
 const {timeSlotsListFromObjectsList} = require('../../utils/timeSlot');
 
@@ -68,6 +69,20 @@ router.post('/today', async function (req, res) {
             res.status(400).send('Bad request!');
         }else{
             res.send (await scheduleAvailabilityForToday(userId, timeSlotsListFromObjectsList(timeSlots)));
+        }
+    }catch (e) {
+        console.error(e);
+        res.status(500).send('Something went wrong!');
+    }
+});
+router.get('/today/scheduled', async function (req, res) {
+    try {
+        const {userId} = req.query;
+        if(!userId){
+            res.status(400).send('Bad request!');
+        }else{
+            const result = await hasScheduledAvailabilityForToday(userId);
+            res.send(result ? 'yes' : 'no');
         }
     }catch (e) {
         console.error(e);
