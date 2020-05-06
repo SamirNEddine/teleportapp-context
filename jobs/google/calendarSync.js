@@ -1,5 +1,6 @@
 require('../../utils').config();
 require('dotenv').config();
+require('../../utils/sentry').setupSentry(process.env.SENTRY_CALENDAR_SYNC_JOB);
 const UserIntegration = require('../../model/UserIntegration');
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const {performCalendarSync} = require('../../helpers/google');

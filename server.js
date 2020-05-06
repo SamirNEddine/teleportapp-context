@@ -1,12 +1,12 @@
 require('./utils').config();
 require('dotenv').config();
+require('./utils/sentry').setupSentry(process.env.SENTRY_CONTEXT_SERVICE);
 const fs = require('fs');
 if (fs.existsSync('./.env.secrets')) require('dotenv').config({path: './.env.secrets'});
 require('./jobs').config();
 const {connectToDb} = require('./utils/mongoose');
 const api = require('./api');
 const bodyParser = require('body-parser');
-
 const express = require('express');
 
 /** Connect to the database **/
