@@ -12,6 +12,7 @@
   "author": "Samir <samir@nevereatalone.io>",
   "license": "MIT",
   "dependencies": {
+    "@sentry/node": "5.15.5",
     "argon2": "^0.26.1",
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",

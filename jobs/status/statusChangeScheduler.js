@@ -1,5 +1,6 @@
 require('../../utils').config();
 require('dotenv').config();
+require('../../utils/sentry').setupSentry(process.env.SENTRY_STATUS_CHANGE_SCHEDULER_JOB);
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
 const {getAvailabilityForToday} = require('../../availability');
 const {setScheduledJobsCache, scheduleStatusChangeJob} = require('./index');
