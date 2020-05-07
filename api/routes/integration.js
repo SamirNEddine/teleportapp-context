@@ -1,5 +1,6 @@
 const express = require('express');
 const UserIntegration = require('../../model/UserIntegration');
+const UserContextParams = require('../../model/UserContextParams');
 const {performCalendarSync} = require('../../helpers/google');
 
 const router = express.Router();
@@ -29,7 +30,8 @@ router.post('/', async function (req, res) {
          const integration = await UserIntegration.findOneAndUpdate({userId, name}, {name, data, userId}, {upsert: true, runValidators: true, new: true});
          //Quick and dirty for now
          if(name === 'google'){
-             await performCalendarSync(integration);
+             const userContextParams = await UserContextParams.findOne({userId});
+             await performCalendarSync(integration, new Date(userContextParams.todayStartWorkTimestamp));
          }
          res.send('ok');
      }catch (e) {
