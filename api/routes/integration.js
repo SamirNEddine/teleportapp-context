@@ -29,7 +29,7 @@ router.post('/', async function (req, res) {
          await UserIntegration.findOneAndUpdate({userId, name}, {name, data, userId}, {upsert: true, runValidators: true});
          //Quick and dirty for now
          if(name === 'google'){
-             performCalendarSync(userId);
+             await performCalendarSync(userId);
          }
          res.send('ok');
      }catch (e) {
