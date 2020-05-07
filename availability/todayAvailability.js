@@ -6,7 +6,7 @@ const UserContextParams = require('../model/UserContextParams');
 const {availabilityFromCalendarEvents} = require('./availabilityFromCalendar');
 const {updateCalendarWithTimeSlots} = require('./calendarFromAvailability');
 const {computeAvailabilitySuggestionFromUnassignedSlots} = require('./availabilitySuggestion');
-// const {performCalendarSync} = require('../helpers/google');
+const {performCalendarSync} = require('../helpers/google');
 const {redisHmsetAsyncWithTTL, redisHmgetallAsync, redisDelAsync} = require('../utils/redis');
 const {getTimestampFromLocalTodayTime} = require('../utils/timezone');
 
@@ -54,9 +54,9 @@ const getSuggestedAvailabilityForToday = async function (userId) {
 };
 const getAvailabilityForToday = async function (userId) {
     //Start by doing a sync
-    // const googleCalendarIntegration = await UserIntegration.findOne({userId, name:'google'});
-    // if(!googleCalendarIntegration) throw new Error('Bad request!');
-    // await performCalendarSync(googleCalendarIntegration);
+    const googleCalendarIntegration = await UserIntegration.findOne({userId, name:'google'});
+    if(!googleCalendarIntegration) throw new Error('Bad request!');
+    await performCalendarSync(googleCalendarIntegration);
     let todayAvailability = await _getCachedTodayAvailability(userId);
     if(!todayAvailability){
         const userContextParams = await UserContextParams.findOne({userId});
