@@ -26,10 +26,10 @@ router.get('/', async function (req, res) {
 router.post('/', async function (req, res) {
      try {
          const {userId, name, data} = req.body;
-         await UserIntegration.findOneAndUpdate({userId, name}, {name, data, userId}, {upsert: true, runValidators: true});
+         const integration = await UserIntegration.findOneAndUpdate({userId, name}, {name, data, userId}, {upsert: true, runValidators: true, new: true});
          //Quick and dirty for now
          if(name === 'google'){
-             await performCalendarSync(userId);
+             await performCalendarSync(integration);
          }
          res.send('ok');
      }catch (e) {
