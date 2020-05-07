@@ -21,6 +21,9 @@ const redisHmsetAsyncWithTTL = async function(key, value, TTL) {
     await redisHmsetAsync(key, value);
     client.expire(key, TTL)
 };
+const cleanCacheForUser = async function(userId) {
+
+};
 
 module.exports.redisGetAsync = redisGetAsync;
 module.exports.redisSetAsync = redisSetAsync;
@@ -30,3 +33,4 @@ module.exports.redisHmgetallAsync = redisHmgetallAsync;
 module.exports.redisDelAsync = redisDelAsync;
 module.exports.redisSetAsyncWithTTL = redisSetAsyncWithTTL;
 module.exports.redisHmsetAsyncWithTTL = redisHmsetAsyncWithTTL;
+module.exports.cleanCacheForUser = cleanCacheForUser;
