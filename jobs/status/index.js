@@ -27,17 +27,21 @@ const setScheduledJobsCache = async function(userId, scheduledJobs, endTime) {
 
 /** Status Change Scheduler **/
 const jobsSchedulerQueue = new Queue(STATUS_CHANGE_JOBS_SCHEDULER_QUEUE_NAME, `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
+const cleanStatusChangeJobsForUser = async function(userId) {
+    const scheduledJobs = await getCachedScheduledJobs(userId);
+    await Promise.all(scheduledJobs.map(async (jobId) => {
+        const job = await statusChangeQueue.getJobFromId(jobId);
+        if(job) await job.remove();
+    }));
+    await setScheduledJobsCache(userId, null);
+};
 const scheduleTodayStatusChangeForUserIfNeeded = async function (userId, forceReschedule=false) {
     const scheduledJobs = await getCachedScheduledJobs(userId);
     if(forceReschedule && scheduledJobs){
         //Clean
         console.log('Rescheduling status change jobs');
         if(scheduledJobs && scheduledJobs.length){
-            await Promise.all(scheduledJobs.map(async (jobId) => {
-                const job = await statusChangeQueue.getJobFromId(jobId);
-                if(job) await job.remove();
-            }));
-            await setScheduledJobsCache(userId, null);
+            await cleanStatusChangeJobsForUser(userId);
         }
         jobsSchedulerQueue.add(STATUS_CHANGE_SCHEDULER_JOB, {userId});
     }else if (!scheduledJobs){
@@ -75,3 +79,4 @@ module.exports.performChangeStatusForUser = performChangeStatusForUser;
 module.exports.getCachedScheduledJobs = getCachedScheduledJobs;
 module.exports.setScheduledJobsCache = setScheduledJobsCache;
 module.exports.scheduleStatusChangeJob = scheduleStatusChangeJob;
+module.exports.cleanStatusChangeJobsForUser = cleanStatusChangeJobsForUser;
