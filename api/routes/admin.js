@@ -9,7 +9,7 @@ router.post('/deleteAccount', async function (req, res) {
         const {userId} = req.body;
         if(userId) {
             //Clean scheduled jobs
-            // await cleanStatusChangeJobsForUser(userId);
+            await cleanStatusChangeJobsForUser(userId);
             //Clean cache
             await cleanCacheForUser(userId);
             //Clean database
