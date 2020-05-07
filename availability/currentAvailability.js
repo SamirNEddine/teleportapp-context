@@ -25,6 +25,15 @@ const setCurrentAvailability = async function (userContextParams, newAvailabilit
     }
     return current.toObject();
 };
+const getNextAvailability = async function (userContextParams) {
+    const now = new Date().getTime();
+    if(now < userContextParams.todayStartWorkTimestamp) {
+        return {start:now, end: userContextParams.todayStartWorkTimestamp, status: 'unassigned'};
+    }else {
+        const availability = await getAvailabilityForToday(userContextParams.userId);
+        return availability.next().toObject();
+    }
+};
 
 module.exports.getCurrentAvailability = getCurrentAvailability;
 module.exports.setCurrentAvailability = setCurrentAvailability;
