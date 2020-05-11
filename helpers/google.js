@@ -1,5 +1,4 @@
 const {google} = require('googleapis');
-const {invalidatedCachedTodayAvailability} = require('../availability/todayAvailability');
 const CalendarEvent = require('../model/CalendarEvent');
 const UserContextParams = require('../model/UserContextParams');
 const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -28,7 +27,7 @@ const getCalendarEventsUpdatesWithISODates = async function(calendar, timeMin, t
     });
     return response.data;
 };
-const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHours) {
+const getCalendarEventsUpdates = async function (userIntegration, timeMin, timeFrameInHours) {
     oauth2Client.setCredentials(userIntegration.data);
     const calendar = google.calendar({
         version: 'v3',
@@ -43,7 +42,6 @@ const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHou
         (new Date().getTime() - new Date(integrationDataBeforeSync.lastFullSyncDate).getTime())/1000 > integrationDataBeforeSync.timeFrameInHours*60*60 ||
         (new Date().getTime()/1000 + timeFrameInHours*60*60) > new Date(integrationDataBeforeSync.lastFullSyncDate).getTime()/1000 + integrationDataBeforeSync.timeFrameInHours*60*60){
         const timeFrameToUse = (timeFrameInHours > syncMinTimeFrameInHours ? timeFrameInHours : syncMinTimeFrameInHours)+syncTimeFrameMarginInHours;
-        const timeMin = new Date();
         const timeMax = new Date(timeMin.getTime() + timeFrameToUse*60*60*1000);
         calendarUpdates = await getCalendarEventsUpdatesWithISODates(calendar, timeMin.toISOString(), timeMax.toISOString());
         integrationDataAfterSync.timeFrameInHours = timeFrameToUse;
@@ -58,8 +56,8 @@ const getCalendarEventsUpdates = async function (userIntegration, timeFrameInHou
     }
     return calendarUpdates.items;
 };
-const performCalendarSync = async function (userIntegration, timeFrameInHours=120) {
-    const calendarUpdates = await getCalendarEventsUpdates(userIntegration, timeFrameInHours);
+const performCalendarSync = async function (userIntegration, timeMin=new Date(), timeFrameInHours=120) {
+    const calendarUpdates = await getCalendarEventsUpdates(userIntegration, timeMin, timeFrameInHours);
     const userContextParams = await UserContextParams.findOne({userId: userIntegration.userId});
     let todayUpdates = false;
     const updates = [];
@@ -103,7 +101,7 @@ const performCalendarSync = async function (userIntegration, timeFrameInHours=12
     if(updates.length){
         console.log(calendarUpdates, 'today updates', todayUpdates);
         await CalendarEvent.bulkWrite(updates);
-        if(todayUpdates) await invalidatedCachedTodayAvailability(userIntegration.userId);
+        if(todayUpdates) await require('../availability/todayAvailability').invalidatedCachedTodayAvailability(userIntegration.userId);
         return {updates: true, todayUpdates};
     }else{
         console.log('No updates!');
