@@ -24,6 +24,8 @@ module.exports = class Availability {
         this.totalTimeUnassigned = initTimeSlot.duration;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.lunchTime = lunchTime;
+        this.lunchDurationInMinutes = lunchDurationInMinutes;
         this.addTimeSlot(new TimeSlot(lunchTime, lunchTime+lunchDurationInMinutes*60*1000, 'lunch'));
     }
 
@@ -151,8 +153,6 @@ module.exports = class Availability {
      addTimeSlot(timeSlot) {
          this._updateUnassignedListWithAssignedTimeSlot(new TimeSlot(timeSlot.start, timeSlot.end, timeSlot.status));
          if (timeSlot.status === 'busy' || timeSlot.status === 'lunch') {
-             this.lunchTime = timeSlot.start;
-             this.lunchDurationInMinutes = timeSlot.duration/60/1000;
             this._insertTimeSlotIntoList(timeSlot, this.busyTimeSlots, false);
          } else {
             //Remove busy intersections
