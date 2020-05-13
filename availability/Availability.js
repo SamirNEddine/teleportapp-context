@@ -53,34 +53,38 @@ module.exports = class Availability {
             }
         }
     };
-    _insertTimeSlotIntoList(timeSlot, list) {
-        let i = 0;
-        let insertionIndex = null;
-        while(i < list.length) {
-            const ts = list[i];
-            if(timeSlot.end < ts.start){
-                if(!insertionIndex){
-                    insertionIndex = i;
-                }
-                break;
-            }else if(timeSlot.start > ts.end){
-                i++;
-            }else {
-                //Merge the two intervals
-                timeSlot.start = timeSlot.start < ts.start ? timeSlot.start : ts.start;
-                timeSlot.end = timeSlot.end > ts.end ? timeSlot.end : ts.end;
-                //Remove the existing one from the list to avoid redundancy
-                list.splice(i, 1);
-                this.totalTimeScheduled -= ts.duration;
-                this.schedule = this.schedule.filter( t => {return !(t.start === ts.start && t.end === ts.end)});
-                this._addTotalTimeForStatus(-ts.duration, ts.status);
-                if(!insertionIndex){
-                    insertionIndex = i;
+    _insertTimeSlotIntoList(timeSlot, list, mergeIfNeeded=true) {
+        if(mergeIfNeeded){
+            let i = 0;
+            let insertionIndex = null;
+            while(i < list.length) {
+                const ts = list[i];
+                if(timeSlot.end < ts.start){
+                    if(!insertionIndex){
+                        insertionIndex = i;
+                    }
+                    break;
+                }else if(timeSlot.start > ts.end){
+                    i++;
+                }else {
+                    //Merge the two intervals
+                    timeSlot.start = timeSlot.start < ts.start ? timeSlot.start : ts.start;
+                    timeSlot.end = timeSlot.end > ts.end ? timeSlot.end : ts.end;
+                    //Remove the existing one from the list to avoid redundancy
+                    list.splice(i, 1);
+                    this.totalTimeScheduled -= ts.duration;
+                    this.schedule = this.schedule.filter( t => {return !(t.start === ts.start && t.end === ts.end)});
+                    this._addTotalTimeForStatus(-ts.duration, ts.status);
+                    if(!insertionIndex){
+                        insertionIndex = i;
+                    }
                 }
             }
+            list.splice(insertionIndex ? insertionIndex : i, 0, timeSlot);
+            this.totalTimeScheduled += timeSlot.duration;
+        }else{
+            list.insertASCSorted(timeSlot);
         }
-        list.splice(insertionIndex ? insertionIndex : i, 0, timeSlot);
-        this.totalTimeScheduled += timeSlot.duration;
         this.schedule.insertASCSorted(timeSlot);
         this._addTotalTimeForStatus(timeSlot.duration, timeSlot.status);
     };
@@ -149,7 +153,7 @@ module.exports = class Availability {
          if (timeSlot.status === 'busy' || timeSlot.status === 'lunch') {
              this.lunchTime = timeSlot.start;
              this.lunchDurationInMinutes = timeSlot.duration/60/1000;
-            this._insertTimeSlotIntoList(timeSlot, this.busyTimeSlots);
+            this._insertTimeSlotIntoList(timeSlot, this.busyTimeSlots, false);
          } else {
             //Remove busy intersections
             const remainingSlotsWithoutBusy = this._removeIntersectionsWithList(timeSlot, this.busyTimeSlots);
