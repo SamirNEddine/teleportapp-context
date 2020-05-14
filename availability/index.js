@@ -5,3 +5,4 @@ module.exports.hasScheduledAvailabilityForToday = require('./todayAvailability')
 module.exports.getSuggestedAvailabilityForToday = require('./todayAvailability').getSuggestedAvailabilityForToday;
 module.exports.scheduleAvailabilityForToday = require('./todayAvailability').scheduleAvailabilityForToday;
 module.exports.getAvailabilityForToday = require('./todayAvailability').getAvailabilityForToday;
+module.exports.getAvailabilityForFullToday = require('./todayAvailability').getAvailabilityForFullToday;

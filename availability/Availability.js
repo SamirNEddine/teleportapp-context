@@ -148,7 +148,9 @@ module.exports = class Availability {
             }
         }
      };
-
+     _endOfDayTimeSlotRepresentation() {
+         return new TimeSlot(this.endTime, this.endTime, 'end');
+     }
      /** Public methods **/
      addTimeSlot(timeSlot) {
          this._updateUnassignedListWithAssignedTimeSlot(new TimeSlot(timeSlot.start, timeSlot.end, timeSlot.status));
@@ -187,33 +189,59 @@ module.exports = class Availability {
          }
      }
      current() {
+         let result = null;
          const now = new Date().getTime();
-         let nearestNextSlot = null;
-         for(let i=0; i<this.schedule.length; i++){
-             const timeSlot = this.schedule[i];
-             if(now >= timeSlot.start && now < timeSlot.end) {
-                 return timeSlot;
-             }else if (timeSlot.start > now){
-                 if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
-                     nearestNextSlot = timeSlot;
+         if(now >= this.endTime && (this.schedule.length === 0 || this.schedule[this.schedule.length -1].end <= this.endTime)) {
+             result = this._endOfDayTimeSlotRepresentation();
+         }else if (now < this.startTime && (this.schedule.length === 0 || this.schedule[0].start >= this.startTime)){
+             result = new TimeSlot(now, this.startTime, 'start');
+         }else {
+             let nearestNextSlot = null;
+             for(let i=0; i<this.schedule.length; i++){
+                 const timeSlot = this.schedule[i];
+                 if(now >= timeSlot.start && now < timeSlot.end) {
+                     result = timeSlot;
+                 }else if (timeSlot.start > now){
+                     if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
+                         nearestNextSlot = timeSlot;
+                     }
                  }
              }
+             if(!result){
+                 //It means it's in an assigned slot: The end time is either the start of the nearest next slot or the end of the last unassigned slot.
+                 const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
+                 result = new TimeSlot(now, endTime, 'unassigned');
+             }
          }
-         //It means it's in an assigned slot: The end time is either the start of the nearest next slot or the end of the last unassigned slot.
-         const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
-         return new TimeSlot(now, endTime, 'unassigned');
+         return result;
      }
      next() {
+         let result = null;
          const now = new Date().getTime();
-         for(let i=0; i<this.schedule.length; i++){
-             const timeSlot = this.schedule[i];
-             if(now >= timeSlot.start && now < timeSlot.end) {
-                 if(i+1 < this.schedule.length){
-                     return this.schedule[i+1];
+         let currentSlot = this.current();
+         if(currentSlot.status === 'end'){
+             result = this._endOfDayTimeSlotRepresentation();
+         }else if(currentSlot.status === 'start' && this.schedule.length > 0){
+            //Get the first TimeSlot in the schedule
+             result = this.schedule[0];
+         }else{
+             for(let i=0; i<this.schedule.length; i++){
+                 const timeSlot = this.schedule[i];
+                 if(now >= timeSlot.start && now < timeSlot.end) {
+                     if(i+1 < this.schedule.length){
+                         result = this.schedule[i+1];
+                     }
+                 }else{
+                     if( now < timeSlot.start){
+                         result = timeSlot;
+                     }
                  }
              }
          }
-         //It means current is the last slot of the schedule
-         return null;
+         if(!result){
+             //Means it's the end of day
+             result = this._endOfDayTimeSlotRepresentation();
+         }
+         return result;
      }
 };

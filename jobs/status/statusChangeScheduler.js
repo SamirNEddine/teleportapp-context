@@ -2,7 +2,7 @@ require('../../utils').config();
 require('dotenv').config();
 require('../../utils/sentry').setupSentry(process.env.SENTRY_STATUS_CHANGE_SCHEDULER_JOB);
 const {connectToDb, disconnectFromDb} = require('../../utils/mongoose');
-const {getAvailabilityForToday} = require('../../availability');
+const {getAvailabilityForFullToday} = require('../../availability');
 const {setScheduledJobsCache, scheduleStatusChangeJob} = require('./index');
 
 module.exports = async function (job, done) {
@@ -18,7 +18,7 @@ module.exports = async function (job, done) {
     const {userId} = job.data;
     const jobs = [];
     const now = new Date().getTime();
-    const {busyTimeSlots, focusTimeSlots, availableTimeSlots, endTime} = await getAvailabilityForToday(userId, now);
+    const {busyTimeSlots, focusTimeSlots, availableTimeSlots, endTime} = await getAvailabilityForFullToday(userId, now);
     await Promise.all( busyTimeSlots.concat(focusTimeSlots).concat(availableTimeSlots).map(async (timeSlot) => {
         //Only remaining events for the day.
         if(now < timeSlot.end) {
