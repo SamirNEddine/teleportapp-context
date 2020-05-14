@@ -49,6 +49,12 @@ const UserContextParamsSchema = Schema({
 }, {timestamp: true});
 
 /** UserContextParamsScheme virtual properties **/
+UserContextParamsSchema.virtual('todayZeroTimestamp').get(function() {
+    return getTimestampFromLocalTodayTime('0000', this.IANATimezone);
+});
+UserContextParamsSchema.virtual('today24Timestamp').get(function() {
+    return getTimestampFromLocalTodayTime('2359', this.IANATimezone);
+});
 UserContextParamsSchema.virtual('todayStartWorkTimestamp').get(function() {
     return getTimestampFromLocalTodayTime(this.startWorkTime, this.IANATimezone);
 });

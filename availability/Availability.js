@@ -24,6 +24,8 @@ module.exports = class Availability {
         this.totalTimeUnassigned = initTimeSlot.duration;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.lunchTime = lunchTime;
+        this.lunchDurationInMinutes = lunchDurationInMinutes;
         this.addTimeSlot(new TimeSlot(lunchTime, lunchTime+lunchDurationInMinutes*60*1000, 'lunch'));
     }
 
@@ -53,34 +55,38 @@ module.exports = class Availability {
             }
         }
     };
-    _insertTimeSlotIntoList(timeSlot, list) {
-        let i = 0;
-        let insertionIndex = null;
-        while(i < list.length) {
-            const ts = list[i];
-            if(timeSlot.end < ts.start){
-                if(!insertionIndex){
-                    insertionIndex = i;
-                }
-                break;
-            }else if(timeSlot.start > ts.end){
-                i++;
-            }else {
-                //Merge the two intervals
-                timeSlot.start = timeSlot.start < ts.start ? timeSlot.start : ts.start;
-                timeSlot.end = timeSlot.end > ts.end ? timeSlot.end : ts.end;
-                //Remove the existing one from the list to avoid redundancy
-                list.splice(i, 1);
-                this.totalTimeScheduled -= ts.duration;
-                this.schedule = this.schedule.filter( t => {return !(t.start === ts.start && t.end === ts.end)});
-                this._addTotalTimeForStatus(-ts.duration, ts.status);
-                if(!insertionIndex){
-                    insertionIndex = i;
+    _insertTimeSlotIntoList(timeSlot, list, mergeIfNeeded=true) {
+        if(mergeIfNeeded){
+            let i = 0;
+            let insertionIndex = null;
+            while(i < list.length) {
+                const ts = list[i];
+                if(timeSlot.end < ts.start){
+                    if(!insertionIndex){
+                        insertionIndex = i;
+                    }
+                    break;
+                }else if(timeSlot.start > ts.end){
+                    i++;
+                }else {
+                    //Merge the two intervals
+                    timeSlot.start = timeSlot.start < ts.start ? timeSlot.start : ts.start;
+                    timeSlot.end = timeSlot.end > ts.end ? timeSlot.end : ts.end;
+                    //Remove the existing one from the list to avoid redundancy
+                    list.splice(i, 1);
+                    this.totalTimeScheduled -= ts.duration;
+                    this.schedule = this.schedule.filter( t => {return !(t.start === ts.start && t.end === ts.end)});
+                    this._addTotalTimeForStatus(-ts.duration, ts.status);
+                    if(!insertionIndex){
+                        insertionIndex = i;
+                    }
                 }
             }
+            list.splice(insertionIndex ? insertionIndex : i, 0, timeSlot);
+            this.totalTimeScheduled += timeSlot.duration;
+        }else{
+            list.insertASCSorted(timeSlot);
         }
-        list.splice(insertionIndex ? insertionIndex : i, 0, timeSlot);
-        this.totalTimeScheduled += timeSlot.duration;
         this.schedule.insertASCSorted(timeSlot);
         this._addTotalTimeForStatus(timeSlot.duration, timeSlot.status);
     };
@@ -142,14 +148,14 @@ module.exports = class Availability {
             }
         }
      };
-
+     _endOfDayTimeSlotRepresentation() {
+         return new TimeSlot(this.endTime, this.endTime, 'end');
+     }
      /** Public methods **/
      addTimeSlot(timeSlot) {
          this._updateUnassignedListWithAssignedTimeSlot(new TimeSlot(timeSlot.start, timeSlot.end, timeSlot.status));
          if (timeSlot.status === 'busy' || timeSlot.status === 'lunch') {
-             this.lunchTime = timeSlot.start;
-             this.lunchDurationInMinutes = timeSlot.duration/60/1000;
-            this._insertTimeSlotIntoList(timeSlot, this.busyTimeSlots);
+            this._insertTimeSlotIntoList(timeSlot, this.busyTimeSlots, false);
          } else {
             //Remove busy intersections
             const remainingSlotsWithoutBusy = this._removeIntersectionsWithList(timeSlot, this.busyTimeSlots);
@@ -183,33 +189,59 @@ module.exports = class Availability {
          }
      }
      current() {
+         let result = null;
          const now = new Date().getTime();
-         let nearestNextSlot = null;
-         for(let i=0; i<this.schedule.length; i++){
-             const timeSlot = this.schedule[i];
-             if(now >= timeSlot.start && now < timeSlot.end) {
-                 return timeSlot;
-             }else if (timeSlot.start > now){
-                 if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
-                     nearestNextSlot = timeSlot;
+         if(now >= this.endTime && (this.schedule.length === 0 || this.schedule[this.schedule.length -1].end <= this.endTime)) {
+             result = this._endOfDayTimeSlotRepresentation();
+         }else if (now < this.startTime && (this.schedule.length === 0 || this.schedule[0].start >= this.startTime)){
+             result = new TimeSlot(now, this.startTime, 'start');
+         }else {
+             let nearestNextSlot = null;
+             for(let i=0; i<this.schedule.length; i++){
+                 const timeSlot = this.schedule[i];
+                 if(now >= timeSlot.start && now < timeSlot.end) {
+                     result = timeSlot;
+                 }else if (timeSlot.start > now){
+                     if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
+                         nearestNextSlot = timeSlot;
+                     }
                  }
              }
+             if(!result){
+                 //It means it's in an assigned slot: The end time is either the start of the nearest next slot or the end of the last unassigned slot.
+                 const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
+                 result = new TimeSlot(now, endTime, 'unassigned');
+             }
          }
-         //It means it's in an assigned slot: The end time is either the start of the nearest next slot or the end of the last unassigned slot.
-         const endTime = nearestNextSlot ? nearestNextSlot.start : this.unassignedTimeSlots[this.unassignedTimeSlots.length -1].end;
-         return new TimeSlot(now, endTime, 'unassigned');
+         return result;
      }
      next() {
+         let result = null;
          const now = new Date().getTime();
-         for(let i=0; i<this.schedule.length; i++){
-             const timeSlot = this.schedule[i];
-             if(now >= timeSlot.start && now < timeSlot.end) {
-                 if(i+1 < this.schedule.length){
-                     return this.schedule[i+1];
+         let currentSlot = this.current();
+         if(currentSlot.status === 'end'){
+             result = this._endOfDayTimeSlotRepresentation();
+         }else if(currentSlot.status === 'start' && this.schedule.length > 0){
+            //Get the first TimeSlot in the schedule
+             result = this.schedule[0];
+         }else{
+             for(let i=0; i<this.schedule.length; i++){
+                 const timeSlot = this.schedule[i];
+                 if(now >= timeSlot.start && now < timeSlot.end) {
+                     if(i+1 < this.schedule.length){
+                         result = this.schedule[i+1];
+                     }
+                 }else{
+                     if( now < timeSlot.start){
+                         result = timeSlot;
+                     }
                  }
              }
          }
-         //It means current is the last slot of the schedule
-         return null;
+         if(!result){
+             //Means it's the end of day
+             result = this._endOfDayTimeSlotRepresentation();
+         }
+         return result;
      }
 };

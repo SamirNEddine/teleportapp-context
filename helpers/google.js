@@ -67,8 +67,8 @@ const performCalendarSync = async function (userIntegration, timeMin=new Date(),
             const updateStartTimeStamp = new Date(update.start.dateTime);
             const updateEndTimeStamp = new Date(update.end.dateTime);
             if(
-                (updateStartTimeStamp >= userContextParams.todayStartWorkTimestamp && updateStartTimeStamp < userContextParams.todayEndWorkTimestamp) ||
-                (updateEndTimeStamp >= userContextParams.todayStartWorkTimestamp && updateEndTimeStamp < userContextParams.todayEndWorkTimestamp)
+                (updateStartTimeStamp >= userContextParams.todayZeroTimestamp && updateStartTimeStamp < userContextParams.today24Timestamp) ||
+                (updateEndTimeStamp >= userContextParams.todayZeroTimestamp && updateEndTimeStamp < userContextParams.today24Timestamp)
             ) {
                 todayUpdates = true;
             }
