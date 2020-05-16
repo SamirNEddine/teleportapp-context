@@ -23,6 +23,24 @@ router.get('/', async function (req, res) {
         }
     }
 });
+router.get('/all', async function (req, res) {
+    try {
+        const {userId} = req.query;
+        const integrations = await UserIntegration.find({userId});
+        if(integrations){
+            await res.json(integrations.map(integration => {return integration.name}));
+        }else{
+            res.status(400).send('Bad request!');
+        }
+    }catch (e) {
+        console.error(e);
+        if(e.name === 'ValidationError' || e.name === 'CastError'){
+            res.status(400).send('Bad request!');
+        }else{
+            res.status(500).send('Something went wrong!');
+        }
+    }
+});
 
 router.post('/', async function (req, res) {
      try {
