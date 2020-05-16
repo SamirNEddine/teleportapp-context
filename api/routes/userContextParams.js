@@ -1,5 +1,6 @@
 const express = require('express');
 const UserContextParams = require('../../model/UserContextParams');
+const {invalidatedCachedTodayAvailability} = require('../../availability/todayAvailability');
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.post('/', async function (req, res) {
             res.status(400).send('Bad request!');
         }else{
             await UserContextParams.findOneAndUpdate({userId}, userContextParams, {upsert: true, runValidators: true});
+            await invalidatedCachedTodayAvailability(userId);
         }
         res.send('ok');
     }catch (e) {
