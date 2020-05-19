@@ -2,7 +2,6 @@ const Sentry = require('@sentry/node');
 const {google} = require('googleapis');
 const CalendarEvent = require('../model/CalendarEvent');
 const UserContextParams = require('../model/UserContextParams');
-const UserIntegration = require('../model/UserIntegration');
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const syncMinTimeFrameInHours = 120;
 const syncTimeFrameMarginInHours = 48;
@@ -34,12 +33,22 @@ const _getCalendarClient = function (userIntegration) {
 };
 const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
     console.debug("Check for calendar updates with syncToken");
-    const response = await calendar.events.list({
-        calendarId: 'primary',
-        showDeleted: true,
-        syncToken
-    });
-    return response.data;
+    try {
+        const response = await calendar.events.list({
+            calendarId: 'primary',
+            showDeleted: true,
+            syncToken
+        });
+
+        return response.data;
+    }catch(e){
+        if(e.response && e.response.status === 410){
+            //SyncToken is no longer valid. Do a full sync instead
+            return 410;
+        }else{
+            throw (e);
+        }
+    }
 };
 const getCalendarEventsUpdatesWithISODates = async function(calendar, timeMin, timeMax){
     console.debug("Check for calendar updates with time frame");
@@ -56,7 +65,8 @@ const getCalendarEventsUpdates = async function (userIntegration, timeMin, timeF
     let newTimeFrameInHours = userIntegration.data.timeFrameInHours;
     let newLastFullSyncDate = userIntegration.data.lastFullSyncDate;
     let calendarUpdates = null;
-    if (! userIntegration.data.timeFrameInHours ||
+    if (!userIntegration.data.syncToken ||
+        !userIntegration.data.timeFrameInHours ||
         (new Date().getTime() - new Date( userIntegration.data.lastFullSyncDate).getTime())/1000 >  userIntegration.data.timeFrameInHours*60*60 ||
         (new Date().getTime()/1000 + timeFrameInHours*60*60) > new Date( userIntegration.data.lastFullSyncDate).getTime()/1000 +  userIntegration.data.timeFrameInHours*60*60){
         const timeFrameToUse = (timeFrameInHours > syncMinTimeFrameInHours ? timeFrameInHours : syncMinTimeFrameInHours)+syncTimeFrameMarginInHours;
@@ -66,6 +76,14 @@ const getCalendarEventsUpdates = async function (userIntegration, timeMin, timeF
         newLastFullSyncDate = timeMin;
     }else{
         calendarUpdates = await getCalendarEventsUpdatesWithToken(calendar,  userIntegration.data.syncToken);
+        if(calendarUpdates === 410){
+            console.log('SyncToken is no longer valid. Do a full sync instead');
+            const data = userIntegration.data;
+            delete data['syncToken'];
+            userIntegration.data = data;
+            await userIntegration.save();
+            return await getCalendarEventsUpdates(userIntegration, timeMin,timeFrameInHours);
+        }
     }
     let newSyncToken = calendarUpdates.nextSyncToken;
     const integrationDataBeforeSync = userIntegration.data;
@@ -73,7 +91,7 @@ const getCalendarEventsUpdates = async function (userIntegration, timeMin, timeF
     integrationDataAfterSync.timeFrameInHours = newTimeFrameInHours;
     integrationDataAfterSync.lastFullSyncDate = newLastFullSyncDate;
     integrationDataAfterSync.syncToken = newSyncToken;
-    if(JSON.stringify(integrationDataAfterSync) === JSON.stringify(integrationDataBeforeSync) ){
+    if(JSON.stringify(integrationDataAfterSync) !== JSON.stringify(integrationDataBeforeSync) ){
         userIntegration.data = integrationDataAfterSync;
         await userIntegration.save();
     }
