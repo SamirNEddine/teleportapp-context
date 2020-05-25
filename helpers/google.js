@@ -87,11 +87,12 @@ const getCalendarEventsUpdates = async function (userIntegration, timeMin, timeF
     }
     let newSyncToken = calendarUpdates.nextSyncToken;
     const integrationDataBeforeSync = userIntegration.data;
-    const integrationDataAfterSync = integrationDataBeforeSync;
+    const integrationDataAfterSync = JSON.parse(JSON.stringify(integrationDataBeforeSync));
     integrationDataAfterSync.timeFrameInHours = newTimeFrameInHours;
     integrationDataAfterSync.lastFullSyncDate = newLastFullSyncDate;
     integrationDataAfterSync.syncToken = newSyncToken;
     if(JSON.stringify(integrationDataAfterSync) !== JSON.stringify(integrationDataBeforeSync) ){
+        console.log('Updating google calendar database');
         userIntegration.data = integrationDataAfterSync;
         await userIntegration.save();
     }
