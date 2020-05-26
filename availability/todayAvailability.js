@@ -86,7 +86,7 @@ const getAvailabilityForToday = async function (userId) {
 const getAvailabilityForFullToday = async function (userId) {
     //Start by doing a sync
     const googleCalendarIntegration = await UserIntegration.findOne({userId, name:'google'});
-    if(!googleCalendarIntegration) throw new Error('Bad request!');
+    if(!googleCalendarIntegration) throw new Error('Bad request! Not integration found for user');
     const {todayUpdates} = await performCalendarSync(googleCalendarIntegration);
     if(todayUpdates) await scheduleTodayStatusChangeForUserIfNeeded(userId, true);
     let fullTodayAvailability = await _getCachedFullTodayAvailability(userId);
