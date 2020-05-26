@@ -59,6 +59,14 @@ const _updateHasScheduledAvailabilityForToday = async function (userId) {
 };
 
 /** Public **/
+const invalidatedCachedTodayAvailability = async function(userId){
+    console.log('Invalidating today availability cache for user', userId);
+    const todayCacheKey = `${TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
+    await redisDelAsync(todayCacheKey);
+    const fullTodayCacheKey = `${FULL_TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
+    await redisDelAsync(fullTodayCacheKey);
+};
+
 const hasScheduledAvailabilityForToday = async function(userId) {
     const userContextParams = await UserContextParams.findOne({userId});
     const today = getLocalTodayDate(userContextParams.IANATimezone);
@@ -101,17 +109,11 @@ const scheduleAvailabilityForToday = async function (userId, timeSlots) {
     if(! await hasScheduledAvailabilityForToday(userId)){
         await updateCalendarWithTimeSlots(userId, timeSlots);
         await _updateHasScheduledAvailabilityForToday(userId);
+        await invalidatedCachedTodayAvailability(userId);
         return 'ok';
     }else{
         return 'Already done for today!';
     }
-};
-const invalidatedCachedTodayAvailability = async function(userId){
-    console.log('Invalidating today availability cache for user', userId);
-    const todayCacheKey = `${TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
-    await redisDelAsync(todayCacheKey);
-    const fullTodayCacheKey = `${FULL_TODAY_SCHEDULE_CACHE_PREFIX}_${userId}`;
-    await redisDelAsync(fullTodayCacheKey);
 };
 
 /** Exports **/
