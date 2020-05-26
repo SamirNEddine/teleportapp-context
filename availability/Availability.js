@@ -201,6 +201,7 @@ module.exports = class Availability {
                  const timeSlot = this.schedule[i];
                  if(now >= timeSlot.start && now < timeSlot.end) {
                      result = timeSlot;
+                     break;
                  }else if (timeSlot.start > now){
                      if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
                          nearestNextSlot = timeSlot;
@@ -230,10 +231,12 @@ module.exports = class Availability {
                  if(now >= timeSlot.start && now < timeSlot.end) {
                      if(i+1 < this.schedule.length){
                          result = this.schedule[i+1];
+                         break;
                      }
                  }else{
                      if( now < timeSlot.start){
                          result = timeSlot;
+                         break;
                      }
                  }
              }
