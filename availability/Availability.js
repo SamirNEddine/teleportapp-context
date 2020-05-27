@@ -203,7 +203,7 @@ module.exports = class Availability {
                      result = timeSlot;
                      break;
                  }else if (timeSlot.start > now){
-                     if (!nearestNextSlot || nearestNextSlot.start < timeSlot.start) {
+                     if (!nearestNextSlot || timeSlot.start < nearestNextSlot.start || (timeSlot.start === nearestNextSlot.start && timeSlot.end > nearestNextSlot.end) ) {
                          nearestNextSlot = timeSlot;
                      }
                  }
