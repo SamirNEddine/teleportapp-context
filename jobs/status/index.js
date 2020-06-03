@@ -32,7 +32,10 @@ const cleanStatusChangeJobsForUser = async function(userId) {
     if(scheduledJobs){
         await Promise.all(scheduledJobs.map(async (jobId) => {
             const job = await statusChangeQueue.getJobFromId(jobId);
-            if(job) await job.remove();
+            if(job) {
+                await job.moveToFailed(Error('Aborted by calendar sync'));
+                await job.remove();
+            }
         }));
         await setScheduledJobsCache(userId, null);
     }
