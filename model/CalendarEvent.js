@@ -41,12 +41,12 @@ const generateTitleForStatus = function(status) {
     switch (status) {
         case 'focus':
         {
-            title = 'Productive work. Reach me only for emergencies. Powered by Teleport';
+            title = 'Not available - Focus slot';
             break;
         }
         case 'available':
         {
-            title = 'Communication slot. Feel free to reach me. Powered by Teleport';
+            title = 'Available - Communication slot';
             break;
         }
     }
