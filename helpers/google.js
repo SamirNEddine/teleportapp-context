@@ -2,7 +2,6 @@ const Sentry = require('@sentry/node');
 const {google} = require('googleapis');
 const CalendarEvent = require('../model/CalendarEvent');
 const UserContextParams = require('../model/UserContextParams');
-const {DateTime} = require("luxon");
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const syncMinTimeFrameInHours = 120;
 const syncTimeFrameMarginInHours = 48;
