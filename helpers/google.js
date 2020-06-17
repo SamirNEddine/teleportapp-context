@@ -2,6 +2,7 @@ const Sentry = require('@sentry/node');
 const {google} = require('googleapis');
 const CalendarEvent = require('../model/CalendarEvent');
 const UserContextParams = require('../model/UserContextParams');
+const {DateTime} = require("luxon");
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const syncMinTimeFrameInHours = 120;
 const syncTimeFrameMarginInHours = 48;
@@ -30,6 +31,9 @@ const _getCalendarClient = function (userIntegration) {
         version: 'v3',
         auth: oauth2Client
     });
+};
+const _isAllDayEvent = function (event) {
+    return (event.start.dateTime === undefined && event.start.date !== undefined);
 };
 const getCalendarEventsUpdatesWithToken = async function(calendar, syncToken){
     console.debug("Check for calendar updates with syncToken");
@@ -107,41 +111,42 @@ const performCalendarSync = async function (userIntegration, timeMin=new Date(),
         const updates = [];
         for(let i=0; i<calendarUpdates.length; i++){
             const update = calendarUpdates[i];
-            if(!todayUpdates){
-                const updateStartTimeStamp = new Date(update.start.dateTime);
-                const updateEndTimeStamp = new Date(update.end.dateTime);
-                if(
-                    (updateStartTimeStamp >= userContextParams.todayZeroTimestamp && updateStartTimeStamp < userContextParams.today24Timestamp) ||
-                    (updateEndTimeStamp >= userContextParams.todayZeroTimestamp && updateEndTimeStamp < userContextParams.today24Timestamp)
-                ) {
-                    todayUpdates = true;
+            if(!_isAllDayEvent(update)){
+                if(!todayUpdates){
+                    const updateStartTimeStamp = new Date(update.start.dateTime);
+                    const updateEndTimeStamp = new Date(update.end.dateTime);
+                    if(
+                        (updateStartTimeStamp >= userContextParams.todayZeroTimestamp && updateStartTimeStamp < userContextParams.today24Timestamp) ||
+                        (updateEndTimeStamp >= userContextParams.todayZeroTimestamp && updateEndTimeStamp < userContextParams.today24Timestamp)
+                    ) {
+                        todayUpdates = true;
+                    }
+                }
+                if(update.status === 'cancelled'){
+                    updates.push({
+                        deleteOne: {
+                            filter: {externalIdentifier: update.id}
+                        }
+                    });
+                }else{
+                    updates.push({
+                        updateOne: {
+                            filter: {externalIdentifier: update.id},
+                            update: {
+                                externalIdentifier: update.id,
+                                title: update.summary,
+                                description: update.description,
+                                userId: userIntegration.userId,
+                                startDateTime: new Date(update.start.dateTime),
+                                endDateTime: new Date(update.end.dateTime),
+                            },
+                            upsert: true,
+                            setDefaultsOnInsert: true
+                        }
+                    });
                 }
             }
-            if(update.status === 'cancelled'){
-                updates.push({
-                    deleteOne: {
-                        filter: {externalIdentifier: update.id}
-                    }
-                });
-            }else{
-                updates.push({
-                    updateOne: {
-                        filter: {externalIdentifier: update.id},
-                        update: {
-                            externalIdentifier: update.id,
-                            title: update.summary,
-                            description: update.description,
-                            userId: userIntegration.userId,
-                            startDateTime: new Date(update.start.dateTime),
-                            endDateTime: new Date(update.end.dateTime),
-                        },
-                        upsert: true,
-                        setDefaultsOnInsert: true
-                    }
-                });
-            }
         }
-
         if(updates.length){
             console.log(calendarUpdates, 'today updates', todayUpdates);
             await CalendarEvent.bulkWrite(updates);
