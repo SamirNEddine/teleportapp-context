@@ -55,6 +55,7 @@ const getCalendarEventsUpdatesWithISODates = async function(calendar, timeMin, t
     const response = await calendar.events.list({
         calendarId: 'primary',
         showDeleted: true,
+        singleEvents: true,
         timeMax,
         timeMin,
     });
