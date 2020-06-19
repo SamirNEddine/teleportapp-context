@@ -130,7 +130,7 @@ const performCalendarSync = async function (userIntegration, timeMin=new Date(),
                 }else{
                     updates.push({
                         updateOne: {
-                            filter: {externalIdentifier: update.id},
+                            filter: {externalIdentifier: update.id, userId: userIntegration.userId},
                             update: {
                                 externalIdentifier: update.id,
                                 title: update.summary,
